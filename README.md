@@ -51,7 +51,7 @@ Ce projet est réalisé en collaboration avec :
 
 1. Clonez le repository :
    ```bash
-   git clone https://github.com/votre-utilisateur/cyna-ecommerce.git
+   git clone https://github.com/SofianeBel/H3_ProjetFilRouge.git
    ```
 
 2. Installez les dépendances pour le Front-End et Back-End :
