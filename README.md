@@ -43,7 +43,7 @@ Le projet est réalisé en collaboration avec deux autres élèves, et nous avon
 
 Ce projet est réalisé en collaboration avec :
 
-- **Mathéo** : WIP
+- **Maceo** : WIP
 - **Stalenes** : WIP
 - **Sofiane** : WIP
 
