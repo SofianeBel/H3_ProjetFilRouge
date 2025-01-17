@@ -45,7 +45,7 @@ Ce projet est réalisé en collaboration avec :
 
 - **Maceo** : WIP
 - **Stalenes** : WIP
-- **Sofiane** : WIP
+- **Sofiane** : Developpement BACK-END & BDD
 
 ## Installation
 
