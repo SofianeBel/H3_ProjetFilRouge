@@ -18,10 +18,11 @@ Le projet est réalisé en collaboration avec deux autres élèves, et nous avon
 - **Front-End :**
   - WIP
 - **Back-End :**
-  - WIP
+  - Python avec FastAPI
+- **BDD :**
+  - PostgreSQL ou MangoDB
 - **Autres :**
   - Git pour le contrôle de version
-  - Docker (si nécessaire pour l'intégration ou le déploiement)
 
 ## Structure du Projet
 
