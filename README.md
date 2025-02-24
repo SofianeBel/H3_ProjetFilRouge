@@ -20,7 +20,7 @@ Le projet est réalisé en collaboration avec deux autres élèves, et nous avon
 - **Back-End :**
   - Python avec FastAPI
 - **BDD :**
-  - PostgreSQL ou MangoDB
+  - PostgreSQL
 - **Autres :**
   - Git pour le contrôle de version
 
