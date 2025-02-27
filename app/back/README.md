@@ -4,7 +4,7 @@ API backend pour la plateforme e-commerce Cyna, développée avec FastAPI et Pos
 
 ## Prérequis
 
-- Python 3.8+
+- Python 3.8+ (testé avec Python 3.13)
 - PostgreSQL 12+
 - pip (gestionnaire de paquets Python)
 
@@ -29,6 +29,20 @@ source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 ```
 
+> **Note importante** : Si vous rencontrez des erreurs lors de l'installation des dépendances ou du lancement du serveur, voici les solutions aux problèmes courants :
+> 
+> - Si vous obtenez l'erreur "No module named 'pydantic_settings'" :
+>   ```bash
+>   pip install pydantic-settings
+>   ```
+> 
+> - Si vous obtenez l'erreur "No module named 'email_validator'" :
+>   ```bash
+>   pip install email-validator
+>   ```
+> 
+> Ces dépendances sont maintenant incluses dans le fichier requirements.txt, mais si vous utilisez une ancienne version, vous devrez peut-être les installer manuellement.
+
 4. Configurer les variables d'environnement :
 Créer un fichier `.env` à la racine du projet avec les variables suivantes :
 ```env
@@ -51,10 +65,15 @@ alembic upgrade head
 
 ## Lancement du serveur
 
-Pour lancer le serveur de développement :
+Pour lancer le serveur de développement, assurez-vous d'être dans le répertoire `app/back` et exécutez :
 ```bash
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn src.main:app --reload
 ```
+
+> **Note** : Si vous obtenez l'erreur "No module named 'src'", assurez-vous que :
+> 1. Vous êtes bien dans le répertoire `app/back`
+> 2. Le dossier `src` contient un fichier `__init__.py` (même vide)
+> 3. Vous utilisez la commande avec `python -m` comme indiqué ci-dessus
 
 L'API sera accessible à l'adresse : http://localhost:8000
 
