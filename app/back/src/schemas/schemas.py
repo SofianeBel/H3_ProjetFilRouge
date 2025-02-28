@@ -3,19 +3,30 @@ from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
 
-# Base schemas
+# ========== User Schemas ==========
 class UserBase(BaseModel):
+    """Schéma de base pour les utilisateurs avec les champs communs"""
     full_name: str
     email: EmailStr
 
 class UserCreate(UserBase):
-    password: constr(min_length=8)
+    """Schéma pour la création d'un utilisateur"""
+    password: constr(min_length=8)  # Mot de passe d'au moins 8 caractères
+
+class UserUpdate(BaseModel):
+    """Schéma pour la mise à jour d'un utilisateur
+    Tous les champs sont optionnels pour permettre des mises à jour partielles"""
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[constr(min_length=8)] = None
 
 class UserLogin(BaseModel):
+    """Schéma pour la connexion d'un utilisateur"""
     email: EmailStr
     password: str
 
 class User(UserBase):
+    """Schéma complet d'un utilisateur avec tous les champs de la base de données"""
     id: int
     role: str
     created_at: datetime

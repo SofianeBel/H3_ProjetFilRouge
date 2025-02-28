@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "your-secret-key")
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Clé secrète pour la création d'admin, doit être définie dans .env
+    ADMIN_SETUP_KEY: str = os.getenv("ADMIN_SETUP_KEY", "")
 
     class Config:
         env_file = ".env"

@@ -48,6 +48,8 @@ Créer un fichier `.env` à la racine du projet avec les variables suivantes :
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/cyna_ecommerce
 JWT_SECRET_KEY=your-secret-key-here
+# Clé secrète pour la création d'admin (choisissez une clé forte)
+ADMIN_SETUP_KEY=your-very-secret-admin-setup-key
 ```
 
 5. Initialiser la base de données :
@@ -62,6 +64,22 @@ alembic init alembic
 alembic revision --autogenerate -m "Initial migration"
 alembic upgrade head
 ```
+
+6. Créer un utilisateur administrateur :
+```bash
+# Utilisez curl ou un outil similaire pour créer l'admin
+curl -X POST http://localhost:8000/_hidden_setup_admin \
+  -H "X-Admin-Key: your-very-secret-admin-setup-key"
+```
+
+> **Note de sécurité** : La création d'un administrateur est une opération sensible.
+> - Définissez une clé `ADMIN_SETUP_KEY` forte et unique dans votre fichier `.env`
+> - La route de création d'admin est cachée et nécessite cette clé
+> - Une fois l'administrateur créé, vous pouvez désactiver cette fonctionnalité en supprimant `ADMIN_SETUP_KEY` de votre `.env`
+> - Les identifiants par défaut de l'admin sont :
+>   - Email : admin@example.com
+>   - Mot de passe : admin12345
+> - **IMPORTANT** : Changez le mot de passe immédiatement après la création
 
 ## Lancement du serveur
 

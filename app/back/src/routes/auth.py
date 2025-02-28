@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from typing import Any
+from typing import Any, Optional
 
 from ..database import get_db
 from ..schemas.schemas import Token, UserCreate, User
@@ -32,7 +32,15 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/register", response_model=User)
-def register_user(user: UserCreate, db: Session = Depends(get_db)) -> Any:
+def register_user(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    x_admin_key: Optional[str] = Header(None)
+) -> Any:
+    """
+    Inscription d'un nouvel utilisateur.
+    Si x_admin_key est fourni et valide, l'utilisateur sera créé en tant qu'admin.
+    """
     # Check if user already exists
     db_user = db.query(UserModel).filter(UserModel.email == user.email).first()
     if db_user:
@@ -41,14 +49,54 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)) -> Any:
             detail="Email already registered"
         )
     
+    # Détermine si l'utilisateur doit être un admin
+    role = "customer"
+    if x_admin_key and settings.ADMIN_SETUP_KEY and x_admin_key == settings.ADMIN_SETUP_KEY:
+        role = "admin"
+    
     # Create new user
     db_user = UserModel(
         email=user.email,
         full_name=user.full_name,
         password_hash=get_password_hash(user.password),
-        role="customer"  # Default role for new users
+        role=role
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user 
+    return db_user
+
+@router.post("/_hidden_setup_admin", response_model=User, include_in_schema=False)
+async def create_admin_user(
+    db: Session = Depends(get_db),
+    x_admin_key: Optional[str] = Header(None)
+) -> Any:
+    """
+    Route cachée pour créer un utilisateur admin par défaut.
+    Nécessite une clé d'API spéciale dans le header X-Admin-Key.
+    Cette route n'apparaît pas dans la documentation Swagger.
+    """
+    # Vérifie la clé d'API
+    if not settings.ADMIN_SETUP_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="La création d'admin n'est pas configurée"
+        )
+    
+    if not x_admin_key or x_admin_key != settings.ADMIN_SETUP_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Clé d'administration invalide"
+        )
+    
+    # Crée l'utilisateur admin par défaut
+    admin_user = UserModel(
+        email="admin@example.com",
+        full_name="Admin User",
+        password_hash=get_password_hash("admin12345"),
+        role="admin"
+    )
+    db.add(admin_user)
+    db.commit()
+    db.refresh(admin_user)
+    return admin_user 
