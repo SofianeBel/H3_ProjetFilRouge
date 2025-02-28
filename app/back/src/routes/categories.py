@@ -72,7 +72,7 @@ def update_category(
     db.refresh(db_category)
     return db_category
 
-#  Supprimer une catégorie (admin seulement)
+# Supprimer une catégorie (admin seulement)
 @router.delete("/{category_id}")
 def delete_category(
     category_id: int,
