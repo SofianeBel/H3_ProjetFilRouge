@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from ..database import get_db
 from typing import List, Optional
-rom ..models.models import Category as CategoryModel
+from ..models.models import Category as CategoryModel
 from ..schemas.schemas import Category, CategoryCreate, CategoryUpdate
 from ..security import check_admin_user
 

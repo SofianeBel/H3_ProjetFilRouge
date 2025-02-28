@@ -35,13 +35,16 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+
+# ========== Category Schemas ==========
+
 class CategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
     parent_category_id: Optional[int] = None
 
 class CategoryCreate(CategoryBase):
-    pass
+    category_id: int
 
 class Category(CategoryBase):
     id: int
@@ -50,6 +53,14 @@ class Category(CategoryBase):
 
     class Config:
         from_attributes = True
+
+# TODO : category update
+
+
+# ========== Brand Schemas ==========
+
+class CategoryUpdate(CategoryBase):
+    pass
 
 class BrandBase(BaseModel):
     name: str
@@ -66,6 +77,9 @@ class Brand(BrandBase):
     class Config:
         from_attributes = True
 
+
+# ========== ProductImage Schemas ==========
+
 class ProductImageBase(BaseModel):
     image_url: str
     is_principal: bool = False
@@ -79,6 +93,9 @@ class ProductImage(ProductImageBase):
 
     class Config:
         from_attributes = True
+
+
+# ========== Product Schemas ==========
 
 class ProductBase(BaseModel):
     name: str
@@ -103,6 +120,9 @@ class Product(ProductBase):
     class Config:
         from_attributes = True
 
+
+# ========== OrderItem Schemas ==========
+
 class OrderItemBase(BaseModel):
     product_id: int
     quantity: int
@@ -117,6 +137,9 @@ class OrderItem(OrderItemBase):
 
     class Config:
         from_attributes = True
+
+
+# ========== Order Schemas ==========
 
 class OrderBase(BaseModel):
     shipping_address: str
@@ -137,6 +160,9 @@ class Order(OrderBase):
     class Config:
         from_attributes = True
 
+
+# ========== CartItem Schemas ==========
+
 class CartItemBase(BaseModel):
     product_id: int
     quantity: int
@@ -151,6 +177,8 @@ class CartItem(CartItemBase):
 
     class Config:
         from_attributes = True
+
+# ========== Payement Schemas ==========
 
 class PaymentBase(BaseModel):
     payment_method: str
@@ -168,6 +196,7 @@ class Payment(PaymentBase):
 
     class Config:
         from_attributes = True
+
 
 # Token schemas
 class Token(BaseModel):
