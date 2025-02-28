@@ -44,6 +44,9 @@ venv.bak/
 *.log
 logs/
 log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Database
 *.sqlite3
@@ -75,6 +78,9 @@ site/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.test
+.env.production
 
 # OS generated files
 .DS_Store
@@ -104,4 +110,51 @@ uploads/
 
 # Local development configuration
 config.local.py
-settings.local.py 
+settings.local.py
+
+# Node.js / React
+node_modules/
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.env.development.local
+.env.test.local
+.env.production.local
+
+# dependencies locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Next.js
+.next/
+out/
+
+# Gatsby
+.cache/
+public/
+
+# Vercel
+.vercel
+
+# Local Netlify folder
+.netlify
+
+# PWA
+**/public/precache.*.*.js
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/fallback-*.js
+**/public/precache.*.*.js.map
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
+**/public/fallback-*.js.map 
