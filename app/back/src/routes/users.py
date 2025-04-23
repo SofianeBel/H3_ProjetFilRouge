@@ -109,4 +109,41 @@ async def delete_user(
     
     db.delete(user)
     db.commit()
-    return {"status": "success"} 
+    return {"status": "success"}
+
+# --- Nouvelles routes RGPD ---
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_current_user(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Permet à l'utilisateur connecté de supprimer son propre compte (Droit à l'effacement RGPD).
+    NOTE : La stratégie de suppression/anonymisation des données associées (commandes, etc.)
+    n'est pas encore implémentée. Seul l'enregistrement utilisateur est supprimé pour l'instant.
+    """
+    db_user = db.query(User).filter(User.id == current_user.id).first()
+    if not db_user:
+        # Should not happen if token is valid, but good practice to check
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur non trouvé")
+
+    # TODO: Implémenter la suppression/anonymisation des données associées (commandes, panier, etc.)
+    # avant de supprimer l'utilisateur lui-même.
+
+    db.delete(db_user)
+    db.commit()
+    # Le statut 204 No Content ne retourne pas de corps de réponse
+
+@router.get("/me/export", response_model=UserSchema)
+async def export_current_user_data(current_user: User = Depends(get_current_user)):
+    """
+    Permet à l'utilisateur connecté d'exporter ses données personnelles (Droit à la portabilité RGPD).
+    Retourne les données de base de l'utilisateur.
+    """
+    # Pour l'instant, retourne les mêmes informations que GET /me.
+    # Pourrait être étendu pour inclure d'autres données (adresses, commandes, etc.)
+    # et formaté différemment (ex: fichier JSON téléchargeable).
+    return current_user
+
+# --- Fin des nouvelles routes RGPD --- 
