@@ -9,19 +9,28 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# --- Modification de sys.path (Alternative) ---
-# Obtient le répertoire depuis lequel la commande alembic est lancée (devrait être app/back)
-current_working_directory = Path(os.getcwd())
-# Construit le chemin vers le dossier src
-src_path = current_working_directory / 'src'
-# Ajoute le chemin src au sys.path
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
+# --- Modification de sys.path (Nouvelle approche) ---
+# Ajoute le dossier racine du backend (app/back) au sys.path
+# Cela permet les imports absolus depuis 'src'
+project_root = Path(__file__).parent.parent # Chemin vers app/back
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 # --- Fin de la modification ---
 
-# --- Maintenant, les imports de votre projet devraient fonctionner ---
-from models.models import Base # Importez votre modèle Base
-from config import get_settings # Importez les paramètres
+# --- Imports depuis votre projet (maintenant absolus depuis la racine ajoutée) ---
+try:
+    # Importe Base depuis src.models.models
+    from src.models.models import Base
+    # Importe get_settings depuis src.config
+    from src.config import get_settings
+except ImportError as e:
+     # Log plus détaillé en cas d'échec
+     print(f"Erreur lors de l'importation des modules du projet dans env.py.")
+     print(f"Vérifiez que vous lancez alembic depuis le dossier 'app/back'.")
+     print(f"Chemin ajouté à sys.path: {project_root}")
+     print(f"sys.path actuel: {sys.path}")
+     print(f"Erreur détaillée: {e}")
+     raise e
 
 # Load environment variables if you use python-dotenv
 # from dotenv import load_dotenv
@@ -42,11 +51,9 @@ db_url = settings.DATABASE_URL # Utilisation de l'objet settings
 if db_url:
      config.set_main_option('sqlalchemy.url', db_url)
 else:
-     # Gestion si DATABASE_URL n'est pas trouvée dans les settings
+     # Gérer le cas où DATABASE_URL n'est pas trouvée
      print("Warning: DATABASE_URL not found in settings.")
-     # Vous pourriez vouloir lever une exception ici ou utiliser une valeur par défaut de alembic.ini
-     # db_url = config.get_main_option("sqlalchemy.url") # Lire depuis alembic.ini comme fallback
-
+     # Gérer le cas où DATABASE_URL n'est pas trouvée
 
 # Set target metadata
 target_metadata = Base.metadata
@@ -59,7 +66,6 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    # Utilise l'URL définie via config.set_main_option
     url = config.get_main_option("sqlalchemy.url")
     if not url:
          raise ValueError("Database URL not configured correctly for offline mode.")
@@ -77,8 +83,6 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    # Utilise la configuration définie via config.set_main_option
-    # engine_from_config lira sqlalchemy.url
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

@@ -36,9 +36,9 @@ try:
     from sqlalchemy import create_engine
     from config import get_settings
     # from database import Base # Cet import n'est pas directement utilisé ici
-    from models.models import User, Order, CartItem, DeletionLog
+    from models.models import User, Order, CartItem, DeletionLog, OrderItem, Payment, ArchivedOrder, ArchivedOrderItem, ArchivedPayment
     # Import des fonctions helper depuis users.py
-    from routes.users import _anonymize_user_orders, _delete_user_cart_items, _log_user_deletion
+    from routes.users import _log_user_deletion
 except ImportError as e:
     logging.error(f"Erreur d'importation critique. Vérifiez PYTHONPATH ou lancez depuis 'app/back'. Détail: {e}", exc_info=True)
     sys.exit(1)
@@ -46,8 +46,74 @@ except ImportError as e:
 # --- Configuration de la Purge ---
 INACTIVE_DAYS_THRESHOLD = 365 # Nombre de jours d'inactivité avant purge
 
+# --- Fonctions Helper pour l'Archivage/Anonymisation --- 
+
+def _archive_and_delete_user_data(user_id: int, db: Session):
+    """Archive les données de commande, supprime les originaux et le panier."""
+    orders = db.query(Order).filter(Order.user_id == user_id).all()
+    archived_count = 0
+
+    for order in orders:
+        logging.debug(f"  Archivage de la commande ID: {order.id}")
+        # 1. Créer la commande archivée anonymisée
+        archived_order = ArchivedOrder(
+            id=order.id,
+            original_user_id=order.user_id,
+            order_date=order.order_date,
+            status=order.status,
+            total_amount=order.total_amount,
+            shipping_address="Anonymized Address", # Anonymisation
+            created_at=order.created_at,
+            updated_at=order.updated_at
+            # archived_at est défini par défaut
+        )
+        db.add(archived_order)
+        # Il faut flush pour obtenir l'ID si on en a besoin tout de suite,
+        # mais ici on peut attendre le commit groupé par utilisateur.
+
+        # 2. Archiver les OrderItems associés
+        for item in order.items:
+            archived_item = ArchivedOrderItem(
+                id=item.id,
+                order_id=archived_order.id, # Utilise l'ID de la commande archivée (sera lié après commit)
+                product_id=item.product_id,
+                quantity=item.quantity,
+                unit_price=item.unit_price
+            )
+            db.add(archived_item)
+            # Supprimer l'original OrderItem
+            db.delete(item)
+
+        # 3. Archiver les Payments associés
+        for payment in order.payments:
+             archived_payment = ArchivedPayment(
+                 id=payment.id,
+                 order_id=archived_order.id,
+                 payment_date=payment.payment_date,
+                 payment_method=payment.payment_method,
+                 status=payment.status,
+                 amount=payment.amount,
+                 transaction_id=payment.transaction_id
+             )
+             db.add(archived_payment)
+             # Supprimer le Payment original
+             db.delete(payment)
+
+        # 4. Supprimer la commande originale
+        db.delete(order)
+        archived_count += 1
+
+    logging.debug(f"  {archived_count} commandes archivées.")
+
+    # 5. Supprimer les CartItems (pas d'archivage)
+    cart_items_to_delete = db.query(CartItem).filter(CartItem.user_id == user_id).all()
+    if cart_items_to_delete:
+        logging.debug(f"  Suppression de {len(cart_items_to_delete)} articles du panier.")
+        for item in cart_items_to_delete:
+            db.delete(item)
+
 def run_purge():
-    """Fonction principale exécutant la logique de purge."""
+    """Fonction principale exécutant la logique de purge (archivage/suppression)."""
     logging.info("--- Démarrage du script de purge des utilisateurs inactifs ---")
     logging.info(f"Seuil d'inactivité: {INACTIVE_DAYS_THRESHOLD} jours")
 
@@ -88,21 +154,26 @@ def run_purge():
         for user in inactive_users:
             user_id_to_purge = user.id
             user_email = user.email
-            logging.info(f"Traitement de l'utilisateur ID: {user_id_to_purge} (Email: {user_email})")
+            logging.info(f"Traitement de l'utilisateur ID: {user_id_to_purge} (Email: {user_email}) pour archivage/suppression.")
             try:
-                # Appliquer les opérations dans une transaction pour cet utilisateur
-                _anonymize_user_orders(user_id_to_purge, db)
-                _delete_user_cart_items(user_id_to_purge, db)
+                # Appeler la nouvelle fonction d'archivage/suppression des données liées
+                _archive_and_delete_user_data(user_id_to_purge, db)
+
+                # Journaliser la suppression de l'utilisateur
                 _log_user_deletion(user_id_to_purge, db)
+
+                # Supprimer l'utilisateur lui-même
                 db.delete(user)
-                db.commit() # Commit les changements pour cet utilisateur
+
+                # Commit toutes les opérations pour cet utilisateur
+                db.commit()
                 purged_count += 1
-                logging.info(f"  -> Utilisateur ID {user_id_to_purge} traité avec succès.")
+                logging.info(f"  -> Utilisateur ID {user_id_to_purge} archivé/supprimé avec succès.")
+
             except Exception as e:
-                logging.error(f"  -> ERREUR lors du traitement de l'utilisateur ID {user_id_to_purge} (Email: {user_email}): {e}", exc_info=False) # exc_info=False pour ne pas polluer les logs avec la trace complète pour chaque user
+                logging.error(f"  -> ERREUR lors du traitement de l'utilisateur ID {user_id_to_purge} (Email: {user_email}): {e}", exc_info=False)
                 db.rollback() # Annule les changements pour CET utilisateur
                 errors.append({"user_id": user_id_to_purge, "email": user_email, "error": str(e)})
-                # La session est prête pour la prochaine itération après rollback
 
         logging.info("--- Fin du traitement des utilisateurs ---")
 

@@ -152,4 +152,56 @@ class ConsentLog(Base):
     granted = Column(Boolean, nullable=False) # True si accordé, False si retiré/refusé
     timestamp = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    user = relationship("User") # Relation optionnelle pour accéder à l'utilisateur si besoin 
+    user = relationship("User") # Relation optionnelle pour accéder à l'utilisateur si besoin
+
+
+# --- Archive Tables ---
+
+# Note: Ces tables stockent une copie anonymisée des données purgées.
+# Elles n'ont pas de clés étrangères directes vers 'users' car l'utilisateur est supprimé.
+
+class ArchivedOrder(Base):
+    __tablename__ = "archived_orders"
+
+    id = Column(Integer, primary_key=True, index=True) # ID original de la commande
+    original_user_id = Column(Integer, index=True) # ID original de l'utilisateur (pour référence interne si besoin)
+    order_date = Column(DateTime(timezone=True))
+    status = Column(String(50), nullable=False)
+    total_amount = Column(Numeric(10, 2), nullable=False)
+    shipping_address = Column(Text) # Contient "Anonymized Address" ou similaire
+    created_at = Column(DateTime(timezone=True))
+    updated_at = Column(DateTime(timezone=True))
+    archived_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Pas de relation directe vers User car il est supprimé
+    # On garde une relation vers les items archivés
+    items = relationship("ArchivedOrderItem", back_populates="order")
+    payments = relationship("ArchivedPayment", back_populates="order")
+
+class ArchivedOrderItem(Base):
+    __tablename__ = "archived_order_items"
+
+    id = Column(Integer, primary_key=True, index=True) # ID original de l'item
+    order_id = Column(Integer, ForeignKey("archived_orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id")) # Garde le lien vers le produit
+    quantity = Column(Integer, nullable=False)
+    unit_price = Column(Numeric(10, 2), nullable=False)
+    archived_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    order = relationship("ArchivedOrder", back_populates="items")
+    # Relation optionnelle vers Product si on veut pouvoir requêter facilement
+    product = relationship("Product")
+
+class ArchivedPayment(Base):
+    __tablename__ = "archived_payments"
+
+    id = Column(Integer, primary_key=True, index=True) # ID original du paiement
+    order_id = Column(Integer, ForeignKey("archived_orders.id"), nullable=False)
+    payment_date = Column(DateTime(timezone=True))
+    payment_method = Column(String(50), nullable=False)
+    status = Column(String(50), nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    transaction_id = Column(String(255))
+    archived_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    order = relationship("ArchivedOrder", back_populates="payments") 

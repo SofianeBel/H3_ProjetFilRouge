@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload, selectinload
-from typing import List
+from typing import List, Optional
 from ..database import get_db
-from ..models.models import User, Order, CartItem, DeletionLog
+from ..models.models import User, Order, CartItem, DeletionLog, OrderItem, Payment, ArchivedOrder, ArchivedOrderItem, ArchivedPayment
 from ..schemas.schemas import UserCreate, User as UserSchema, UserUpdate, Order as OrderSchema, UserDataExport
 from ..security import get_current_user, get_password_hash, check_admin_user
 from datetime import datetime, timedelta
+from fastapi.responses import StreamingResponse
+import io
+import csv
+from fpdf import FPDF
 
 router = APIRouter()
 
@@ -38,6 +42,45 @@ def _log_user_deletion(user_id: int, db: Session):
     log_entry = DeletionLog(user_id=user_id, deleted_at=datetime.utcnow())
     db.add(log_entry)
     # db.flush()
+
+# --- Fonction d'archivage/suppression (peut être partagée avec le script via un module utils?) ---
+# Pour l'instant, on duplique la logique ici pour la route admin.
+# Une meilleure approche serait de mettre cette logique dans un module séparé.
+def _archive_and_delete_user_data_for_route(user_id: int, db: Session):
+    """Duplication de la logique d'archivage pour utilisation par la route admin."""
+    # Identique à la fonction dans le script purge_inactive_script.py
+    orders = db.query(Order).filter(Order.user_id == user_id).all()
+    archived_count = 0
+    for order in orders:
+        archived_order = ArchivedOrder(
+            id=order.id, original_user_id=order.user_id, order_date=order.order_date,
+            status=order.status, total_amount=order.total_amount,
+            shipping_address="Anonymized Address", created_at=order.created_at,
+            updated_at=order.updated_at
+        )
+        db.add(archived_order)
+        for item in order.items:
+            archived_item = ArchivedOrderItem(
+                id=item.id, order_id=archived_order.id, product_id=item.product_id,
+                quantity=item.quantity, unit_price=item.unit_price
+            )
+            db.add(archived_item)
+            db.delete(item)
+        for payment in order.payments:
+             archived_payment = ArchivedPayment(
+                 id=payment.id, order_id=archived_order.id, payment_date=payment.payment_date,
+                 payment_method=payment.payment_method, status=payment.status,
+                 amount=payment.amount, transaction_id=payment.transaction_id
+             )
+             db.add(archived_payment)
+             db.delete(payment)
+        db.delete(order)
+        archived_count += 1
+    cart_items_to_delete = db.query(CartItem).filter(CartItem.user_id == user_id).all()
+    if cart_items_to_delete:
+        for item in cart_items_to_delete:
+            db.delete(item)
+    # Note: le commit se fait dans la fonction appelante (purge_inactive_users)
 
 # --- Original Routes --- 
 
@@ -174,46 +217,177 @@ async def delete_current_user(
     db.commit()
     # Statut 204 ne retourne pas de corps
 
-@router.get("/me/export", response_model=UserDataExport)
-async def export_current_user_data(
+@router.get(
+    "/me/export",
+    summary="Export User Data",
+    description="Permet à l'utilisateur connecté d'exporter ses données personnelles (Droit à la portabilité RGPD). "
+                "Retourne les données au format JSON (défaut), PDF ou CSV selon le paramètre 'format'.",
+    responses={
+        200: {
+            "description": "Données utilisateur exportées avec succès dans le format demandé.",
+            "content": {
+                "application/json": {
+                    "schema": UserDataExport.model_json_schema(), 
+                    "example": {"id": 1, "full_name": "Example User", "email": "user@example.com", "role": "customer", "created_at": "...", "updated_at": "...", "last_login_at": "...", "orders": []}
+                },
+                "application/pdf": {
+                    "schema": {"type": "string", "format": "binary"},
+                    "description": "Fichier PDF contenant les données utilisateur."
+                },
+                "text/csv": {
+                    "schema": {"type": "string"},
+                    "description": "Fichier CSV contenant les données utilisateur."
+                 }
+            }
+        },
+        404: {"description": "Utilisateur non trouvé"},
+        400: {"description": "Format invalide spécifié"}
+    }
+)
+def export_current_user_data(
+    format: Optional[str] = Query("json", enum=["json", "pdf", "csv"], description="Le format souhaité pour l'export (json, pdf, ou csv)."),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Permet à l'utilisateur connecté d'exporter ses données personnelles (Droit à la portabilité RGPD).
-    Retourne les données de l'utilisateur et l'historique de ses commandes non anonymisées.
+    Retourne les données au format JSON (défaut), PDF ou CSV.
     """
-    # Re-fetch user with orders eagerly loaded to ensure they are available
-    # Use selectinload for better performance with lists of related objects
     user_with_data = db.query(User).options(
-        selectinload(User.orders).selectinload(Order.items) # Load orders and their items
+        selectinload(User.orders).selectinload(Order.items)
     ).filter(User.id == current_user.id).first()
 
     if not user_with_data:
-        # Should not happen with a valid token, but check anyway
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
-    # The UserDataExport schema will automatically include the orders
-    # Pydantic handles the conversion from the SQLAlchemy model instance
-    return user_with_data
+    # Nom de fichier suggéré
+    filename = f"export_data_{user_with_data.id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
-# --- Route Admin pour Purge Manuelle ---
+    # --- Génération JSON (défaut) ---
+    if format == "json":
+        # Utilise le schéma Pydantic pour sérialiser
+        export_data = UserDataExport.from_orm(user_with_data)
+        return export_data # FastAPI gère la sérialisation JSON
+
+    # --- Génération CSV --- 
+    elif format == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Écrire les infos utilisateur
+        writer.writerow(['User ID', user_with_data.id])
+        writer.writerow(['Full Name', user_with_data.full_name])
+        writer.writerow(['Email', user_with_data.email])
+        writer.writerow(['Role', user_with_data.role])
+        writer.writerow(['Created At', user_with_data.created_at.isoformat()])
+        writer.writerow(['Updated At', user_with_data.updated_at.isoformat()])
+        writer.writerow(['Last Login At', user_with_data.last_login_at.isoformat() if user_with_data.last_login_at else 'N/A'])
+        writer.writerow([]) # Ligne vide
+        writer.writerow(['Orders'])
+
+        # Écrire les en-têtes des commandes
+        writer.writerow(['Order ID', 'Order Date', 'Status', 'Total Amount', 'Shipping Address', 'Item Product ID', 'Item Name', 'Item Quantity', 'Item Unit Price'])
+
+        # Écrire les données des commandes et items
+        for order in user_with_data.orders:
+            first_item = True
+            if not order.items:
+                writer.writerow([
+                    order.id, order.order_date.isoformat(), order.status, str(order.total_amount), order.shipping_address,
+                    'N/A', 'N/A', 'N/A', 'N/A'
+                ])
+            else:
+                for item in order.items:
+                    # Récupérer le nom du produit (si la relation est chargée ou via une requête)
+                    # Ici, on suppose que l'objet Product n'est pas chargé, on met N/A
+                    # Pour l'avoir, il faudrait charger item.product dans la requête initiale ou faire une sous-requête.
+                    product_name = "N/A" # Simplification
+                    if first_item:
+                        writer.writerow([
+                            order.id, order.order_date.isoformat(), order.status, str(order.total_amount), order.shipping_address,
+                            item.product_id, product_name, item.quantity, str(item.unit_price)
+                        ])
+                        first_item = False
+                    else:
+                        writer.writerow([
+                            '', '', '', '', '',
+                            item.product_id, product_name, item.quantity, str(item.unit_price)
+                        ])
+
+        output.seek(0)
+        headers = {'Content-Disposition': f'attachment; filename="{filename}.csv"'}
+        return StreamingResponse(output, media_type="text/csv", headers=headers)
+
+    # --- Génération PDF --- 
+    elif format == "pdf":
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        # Infos Utilisateur
+        pdf.cell(200, 10, txt="User Data Export", ln=True, align='C')
+        pdf.ln(5)
+        pdf.set_font("Arial", 'B', size=10)
+        pdf.cell(40, 10, txt="User ID:")
+        pdf.set_font("Arial", size=10)
+        pdf.cell(0, 10, txt=str(user_with_data.id), ln=True)
+        # ... (ajouter les autres champs utilisateur: full_name, email, role, dates...)
+        pdf.set_font("Arial", 'B', size=10)
+        pdf.cell(40, 10, txt="Full Name:")
+        pdf.set_font("Arial", size=10)
+        pdf.cell(0, 10, txt=user_with_data.full_name, ln=True)
+        pdf.set_font("Arial", 'B', size=10)
+        pdf.cell(40, 10, txt="Email:")
+        pdf.set_font("Arial", size=10)
+        pdf.cell(0, 10, txt=user_with_data.email, ln=True)
+        # ... (ajouter les autres champs)
+
+        pdf.ln(10)
+        pdf.set_font("Arial", 'B', size=12)
+        pdf.cell(0, 10, txt="Orders", ln=True)
+        pdf.ln(5)
+
+        # Tableau des Commandes
+        pdf.set_font("Arial", 'B', size=8)
+        col_widths = [15, 35, 20, 25, 50] # Ajuster les largeurs
+        headers = ['Order ID', 'Date', 'Status', 'Total', 'Shipping Address']
+        for i, header in enumerate(headers):
+            pdf.cell(col_widths[i], 10, txt=header, border=1)
+        pdf.ln()
+
+        pdf.set_font("Arial", size=8)
+        for order in user_with_data.orders:
+            pdf.cell(col_widths[0], 10, txt=str(order.id), border=1)
+            pdf.cell(col_widths[1], 10, txt=order.order_date.strftime('%Y-%m-%d %H:%M'), border=1)
+            pdf.cell(col_widths[2], 10, txt=order.status, border=1)
+            pdf.cell(col_widths[3], 10, txt=str(order.total_amount), border=1)
+            pdf.cell(col_widths[4], 10, txt=order.shipping_address, border=1)
+            pdf.ln()
+            # On pourrait ajouter les items ici aussi, mais ça complexifie le tableau
+
+        # Génération du PDF en bytes
+        pdf_output_bytes = pdf.output(dest='S').encode('latin-1')
+
+        headers = {'Content-Disposition': f'attachment; filename="{filename}.pdf"'}
+        return StreamingResponse(io.BytesIO(pdf_output_bytes), media_type="application/pdf", headers=headers)
+
+    else:
+        # Ne devrait pas arriver avec l'enum, mais par sécurité
+        raise HTTPException(status_code=400, detail="Invalid format specified")
+
+# --- Route Admin pour Purge Manuelle (modifiée) ---
 
 @router.post("/purge-inactive", status_code=status.HTTP_200_OK)
 async def purge_inactive_users(
-    inactive_days: int = 365, # Durée d'inactivité en jours
+    inactive_days: int = 365,
     db: Session = Depends(get_db),
-    current_admin: User = Depends(check_admin_user) # Vérifie que l'utilisateur est admin
+    current_admin: User = Depends(check_admin_user)
 ):
     """
-    [ADMIN ONLY] Déclenche manuellement la suppression/anonymisation
+    [ADMIN ONLY] Déclenche manuellement l'archivage et la suppression
     des utilisateurs considérés comme inactifs.
-    ATTENTION: Ceci est une démonstration. Une tâche planifiée est nécessaire pour l'automatisation.
     """
     cutoff_date = datetime.utcnow() - timedelta(days=inactive_days)
-    
-    # Trouve les utilisateurs inactifs (jamais connectés ou dernière connexion avant la date limite)
-    # Exclut les admins pour éviter l'auto-suppression
     inactive_users = db.query(User).filter(
         User.role != 'admin',
         (User.last_login_at == None) | (User.last_login_at < cutoff_date)
@@ -224,40 +398,24 @@ async def purge_inactive_users(
 
     for user in inactive_users:
         user_id_to_purge = user.id
-        print(f"Purging inactive user ID: {user_id_to_purge}") # Log simple
+        print(f"Archiving/Purging inactive user ID: {user_id_to_purge}")
         try:
-            # Applique la même logique que delete_me
-            _anonymize_user_orders(user_id_to_purge, db)
-            _delete_user_cart_items(user_id_to_purge, db)
-            db.delete(user) # Supprime l'objet User SQLAlchemy
+            # Appelle la nouvelle logique d'archivage
+            _archive_and_delete_user_data_for_route(user_id_to_purge, db)
+            # Journalise la suppression
             _log_user_deletion(user_id_to_purge, db)
-            # Le commit se fera à la fin pour toutes les purges réussies
+            # Supprime l'utilisateur
+            db.delete(user)
+            # Commit pour cet utilisateur
+            db.commit()
             purged_count += 1
         except Exception as e:
-            # Log l'erreur et continue avec les autres utilisateurs
-            db.rollback() # Annule les changements pour CET utilisateur
-            print(f"Error purging user ID {user_id_to_purge}: {e}")
+            db.rollback()
+            print(f"Error archiving/purging user ID {user_id_to_purge}: {e}")
             errors.append({"user_id": user_id_to_purge, "error": str(e)})
-            # Re-ouvre une transaction si nécessaire (selon la gestion de session)
-            # Si on utilise le pattern try/finally pour db.close() dans get_db,
-            # une nouvelle session sera fournie implicitement à la prochaine itération.
-            # Il est crucial de ne pas laisser la session dans un état invalide.
-            # On pourrait re-créer une session ici si nécessaire, mais le rollback 
-            # suivi du commit global est généralement suffisant avec FastAPI Depends.
-
-
-    if purged_count > 0:
-        try:
-            db.commit() # Commit toutes les purges réussies
-        except Exception as e:
-            # Erreur lors du commit final (rare mais possible)
-             print(f"Final commit error after purging {purged_count} users: {e}")
-             # Il faudrait une stratégie de reprise ou un log plus détaillé ici
-             errors.append({"user_id": "COMMIT_FAILED", "error": str(e)})
-             purged_count = 0 # Réfléchir si on considère qu'aucune purge n'a eu lieu
 
     return {
-        "message": f"Purge attempt finished. {purged_count} inactive users processed.",
+        "message": f"Archive/Purge attempt finished. {purged_count} inactive users processed.",
         "errors": errors
     }
 
