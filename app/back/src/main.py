@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routes import auth, users, products, categories, brands, orders, cart
+from .routes import auth, users, products, categories, brands, orders, cart, consent
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -34,6 +34,7 @@ app.include_router(categories.router, prefix="/categories", tags=["Categories"])
 app.include_router(brands.router, prefix="/brands", tags=["Brands"])
 app.include_router(orders.router, prefix="/orders", tags=["Orders"])
 app.include_router(cart.router, prefix="/cart", tags=["Cart"])
+app.include_router(consent.router)
 
 @app.get("/")
 async def root():

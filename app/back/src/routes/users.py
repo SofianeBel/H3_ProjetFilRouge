@@ -1,12 +1,45 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from typing import List
 from ..database import get_db
-from ..models.models import User
-from ..schemas.schemas import UserCreate, User as UserSchema, UserUpdate
-from ..security import get_current_user, get_password_hash
+from ..models.models import User, Order, CartItem, DeletionLog
+from ..schemas.schemas import UserCreate, User as UserSchema, UserUpdate, Order as OrderSchema, UserDataExport
+from ..security import get_current_user, get_password_hash, check_admin_user
+from datetime import datetime, timedelta
 
 router = APIRouter()
+
+# --- Helper Functions for Anonymization/Deletion ---
+
+def _anonymize_user_orders(user_id: int, db: Session):
+    """Anonymise les commandes d'un utilisateur.
+    Met user_id à None et remplace shipping_address.
+    """
+    orders_to_anonymize = db.query(Order).filter(Order.user_id == user_id).all()
+    if orders_to_anonymize:
+        for order in orders_to_anonymize:
+            order.user_id = None
+            order.shipping_address = "Anonymized Address"
+        # Note: Flush might be useful here if we want subsequent operations
+        # in the same transaction to see these changes before commit.
+        # For now, commit at the end handles it.
+        # db.flush()
+
+def _delete_user_cart_items(user_id: int, db: Session):
+    """Supprime les éléments du panier d'un utilisateur."""
+    cart_items_to_delete = db.query(CartItem).filter(CartItem.user_id == user_id).all()
+    if cart_items_to_delete:
+        for item in cart_items_to_delete:
+            db.delete(item)
+        # db.flush()
+
+def _log_user_deletion(user_id: int, db: Session):
+    """Journalise la suppression d'un utilisateur."""
+    log_entry = DeletionLog(user_id=user_id, deleted_at=datetime.utcnow())
+    db.add(log_entry)
+    # db.flush()
+
+# --- Original Routes --- 
 
 @router.get("/", response_model=List[UserSchema])
 async def get_users(
@@ -24,7 +57,7 @@ async def get_users(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seuls les administrateurs peuvent voir la liste des utilisateurs"
         )
-    users = db.query(User).offset(skip).limit(limit).all()
+    users = db.query(User).options(joinedload(User.orders), joinedload(User.cart_items)).offset(skip).limit(limit).all()
     return users
 
 @router.get("/me", response_model=UserSchema)
@@ -44,7 +77,7 @@ async def get_user(
     Récupère un utilisateur par son ID.
     Seuls les administrateurs ou l'utilisateur lui-même peuvent voir ses informations.
     """
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).options(joinedload(User.orders), joinedload(User.cart_items)).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     
@@ -111,7 +144,7 @@ async def delete_user(
     db.commit()
     return {"status": "success"}
 
-# --- Nouvelles routes RGPD ---
+# --- RGPD Routes --- 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_current_user(
@@ -120,30 +153,114 @@ async def delete_current_user(
 ):
     """
     Permet à l'utilisateur connecté de supprimer son propre compte (Droit à l'effacement RGPD).
-    NOTE : La stratégie de suppression/anonymisation des données associées (commandes, etc.)
-    n'est pas encore implémentée. Seul l'enregistrement utilisateur est supprimé pour l'instant.
+    Anonymise les commandes, supprime le panier, journalise, puis supprime l'utilisateur.
     """
-    db_user = db.query(User).filter(User.id == current_user.id).first()
+    user_id_to_delete = current_user.id
+    db_user = db.query(User).filter(User.id == user_id_to_delete).first()
     if not db_user:
-        # Should not happen if token is valid, but good practice to check
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur non trouvé")
 
-    # TODO: Implémenter la suppression/anonymisation des données associées (commandes, panier, etc.)
-    # avant de supprimer l'utilisateur lui-même.
-
+    # Utilisation des fonctions helper
+    _anonymize_user_orders(user_id_to_delete, db)
+    _delete_user_cart_items(user_id_to_delete, db)
+    
+    # Supprimer l'utilisateur lui-même
     db.delete(db_user)
-    db.commit()
-    # Le statut 204 No Content ne retourne pas de corps de réponse
 
-@router.get("/me/export", response_model=UserSchema)
-async def export_current_user_data(current_user: User = Depends(get_current_user)):
+    # Journaliser AVANT commit final (pour inclure dans la même transaction)
+    _log_user_deletion(user_id_to_delete, db)
+
+    # Commiter toutes les opérations
+    db.commit()
+    # Statut 204 ne retourne pas de corps
+
+@router.get("/me/export", response_model=UserDataExport)
+async def export_current_user_data(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Permet à l'utilisateur connecté d'exporter ses données personnelles (Droit à la portabilité RGPD).
-    Retourne les données de base de l'utilisateur.
+    Retourne les données de l'utilisateur et l'historique de ses commandes non anonymisées.
     """
-    # Pour l'instant, retourne les mêmes informations que GET /me.
-    # Pourrait être étendu pour inclure d'autres données (adresses, commandes, etc.)
-    # et formaté différemment (ex: fichier JSON téléchargeable).
-    return current_user
+    # Re-fetch user with orders eagerly loaded to ensure they are available
+    # Use selectinload for better performance with lists of related objects
+    user_with_data = db.query(User).options(
+        selectinload(User.orders).selectinload(Order.items) # Load orders and their items
+    ).filter(User.id == current_user.id).first()
+
+    if not user_with_data:
+        # Should not happen with a valid token, but check anyway
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    # The UserDataExport schema will automatically include the orders
+    # Pydantic handles the conversion from the SQLAlchemy model instance
+    return user_with_data
+
+# --- Route Admin pour Purge Manuelle ---
+
+@router.post("/purge-inactive", status_code=status.HTTP_200_OK)
+async def purge_inactive_users(
+    inactive_days: int = 365, # Durée d'inactivité en jours
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(check_admin_user) # Vérifie que l'utilisateur est admin
+):
+    """
+    [ADMIN ONLY] Déclenche manuellement la suppression/anonymisation
+    des utilisateurs considérés comme inactifs.
+    ATTENTION: Ceci est une démonstration. Une tâche planifiée est nécessaire pour l'automatisation.
+    """
+    cutoff_date = datetime.utcnow() - timedelta(days=inactive_days)
+    
+    # Trouve les utilisateurs inactifs (jamais connectés ou dernière connexion avant la date limite)
+    # Exclut les admins pour éviter l'auto-suppression
+    inactive_users = db.query(User).filter(
+        User.role != 'admin',
+        (User.last_login_at == None) | (User.last_login_at < cutoff_date)
+    ).all()
+
+    purged_count = 0
+    errors = []
+
+    for user in inactive_users:
+        user_id_to_purge = user.id
+        print(f"Purging inactive user ID: {user_id_to_purge}") # Log simple
+        try:
+            # Applique la même logique que delete_me
+            _anonymize_user_orders(user_id_to_purge, db)
+            _delete_user_cart_items(user_id_to_purge, db)
+            db.delete(user) # Supprime l'objet User SQLAlchemy
+            _log_user_deletion(user_id_to_purge, db)
+            # Le commit se fera à la fin pour toutes les purges réussies
+            purged_count += 1
+        except Exception as e:
+            # Log l'erreur et continue avec les autres utilisateurs
+            db.rollback() # Annule les changements pour CET utilisateur
+            print(f"Error purging user ID {user_id_to_purge}: {e}")
+            errors.append({"user_id": user_id_to_purge, "error": str(e)})
+            # Re-ouvre une transaction si nécessaire (selon la gestion de session)
+            # Si on utilise le pattern try/finally pour db.close() dans get_db,
+            # une nouvelle session sera fournie implicitement à la prochaine itération.
+            # Il est crucial de ne pas laisser la session dans un état invalide.
+            # On pourrait re-créer une session ici si nécessaire, mais le rollback 
+            # suivi du commit global est généralement suffisant avec FastAPI Depends.
+
+
+    if purged_count > 0:
+        try:
+            db.commit() # Commit toutes les purges réussies
+        except Exception as e:
+            # Erreur lors du commit final (rare mais possible)
+             print(f"Final commit error after purging {purged_count} users: {e}")
+             # Il faudrait une stratégie de reprise ou un log plus détaillé ici
+             errors.append({"user_id": "COMMIT_FAILED", "error": str(e)})
+             purged_count = 0 # Réfléchir si on considère qu'aucune purge n'a eu lieu
+
+    return {
+        "message": f"Purge attempt finished. {purged_count} inactive users processed.",
+        "errors": errors
+    }
+
+# --- Fin de la route Admin ---
 
 # --- Fin des nouvelles routes RGPD --- 

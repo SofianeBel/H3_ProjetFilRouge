@@ -13,6 +13,7 @@ class User(Base):
     role = Column(String(50), nullable=False, default="customer")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
 
     orders = relationship("Order", back_populates="user")
     cart_items = relationship("CartItem", back_populates="user")
@@ -78,7 +79,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     order_date = Column(DateTime(timezone=True), server_default=func.now())
     status = Column(String(50), nullable=False, default="pending")
     total_amount = Column(Numeric(10, 2), nullable=False)
@@ -129,4 +130,26 @@ class Payment(Base):
     amount = Column(Numeric(10, 2), nullable=False)
     transaction_id = Column(String(255))
 
-    order = relationship("Order", back_populates="payments") 
+    order = relationship("Order", back_populates="payments")
+
+# Nouveau modèle pour la journalisation des suppressions RGPD
+class DeletionLog(Base):
+    __tablename__ = "deletion_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True) # ID de l'utilisateur supprimé
+    deleted_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    # On pourrait ajouter l'ID de l'admin qui a fait la suppression si applicable,
+    # ou la source (ex: 'user_request', 'admin_action')
+
+# Nouveau modèle pour la journalisation des consentements RGPD
+class ConsentLog(Base):
+    __tablename__ = "consent_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    consent_type = Column(String(100), nullable=False, index=True) # Ex: 'newsletter', 'marketing_cookies', 'profiling'
+    granted = Column(Boolean, nullable=False) # True si accordé, False si retiré/refusé
+    timestamp = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    user = relationship("User") # Relation optionnelle pour accéder à l'utilisateur si besoin 
