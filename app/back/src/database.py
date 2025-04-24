@@ -10,6 +10,8 @@ SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
 # Create the SQLAlchemy engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
+# Create session class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
