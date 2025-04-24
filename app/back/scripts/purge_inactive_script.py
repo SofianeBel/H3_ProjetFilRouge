@@ -135,7 +135,7 @@ def run_purge():
         logging.info("Connexion à la base de données établie.")
 
         # Calcul de la date limite
-        cutoff_date = datetime.now(datetime.UTC) - timedelta(days=INACTIVE_DAYS_THRESHOLD)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=INACTIVE_DAYS_THRESHOLD)
         logging.info(f"Date limite pour dernière connexion: {cutoff_date.strftime('%Y-%m-%d %H:%M:%S')} UTC")
 
         # Requête pour trouver les utilisateurs inactifs (non-admin)
