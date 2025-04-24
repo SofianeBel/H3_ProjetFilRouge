@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any, Optional
 
 from ..database import get_db
@@ -25,6 +25,13 @@ async def login_for_access_token(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Mise à jour de last_login_at
+    user.last_login_at = datetime.utcnow()
+    db.add(user) # Add user to session to track changes
+    db.commit()  # Commit the last_login_at update
+    # db.refresh(user) # Optional: refresh if you need the updated user object immediately
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires

@@ -31,9 +31,15 @@ class User(UserBase):
     role: str
     created_at: datetime
     updated_at: datetime
+    last_login_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+# Schéma spécifique pour l'export de données RGPD
+class UserDataExport(User):
+    """Schéma pour l'export des données utilisateur, incluant les commandes"""
+    orders: List['Order'] = [] # Utilisation d'une référence anticipée (string)
 
 
 # ========== Category Schemas ==========
@@ -204,4 +210,22 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: Optional[str] = None 
+    email: Optional[str] = None
+
+# ========== ConsentLog Schemas ==========
+
+class ConsentLogBase(BaseModel):
+    consent_type: str
+    granted: bool
+
+class ConsentLogCreate(ConsentLogBase):
+    # user_id sera ajouté côté serveur à partir de l'utilisateur connecté
+    pass
+
+class ConsentLog(ConsentLogBase):
+    id: int
+    user_id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True 
