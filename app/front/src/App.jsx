@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Dashboard from './components/Dashboard/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
@@ -10,12 +11,58 @@ function App() {
         {/* Route publique pour la page de connexion */}
         <Route path="/login" element={<Login />} />
 
-        {/* Route protégée pour la page d'accueil */}
+        {/* Route protégée pour le dashboard */}
         <Route
           path="/"
           element={
             <PrivateRoute>
-              <div>Page d'accueil protégée</div>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        {/* Routes pour les autres sections du dashboard */}
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/customers"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/analytics"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <Dashboard />
             </PrivateRoute>
           }
         />
