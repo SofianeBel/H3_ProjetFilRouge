@@ -5,6 +5,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   // Liste des liens de navigation
   const navItems = [
     { name: 'Tableau de bord', icon: 'home', path: '/' },
+    { name: 'Utilisateurs', icon: 'users', path: '/users' },
     { name: 'Produits', icon: 'box', path: '/products' },
     { name: 'Commandes', icon: 'shopping-cart', path: '/orders' },
     { name: 'Clients', icon: 'users', path: '/customers' },

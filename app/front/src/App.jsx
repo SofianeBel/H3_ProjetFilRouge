@@ -11,7 +11,7 @@ function App() {
         {/* Route publique pour la page de connexion */}
         <Route path="/login" element={<Login />} />
 
-        {/* Route protégée pour le dashboard */}
+        {/* Routes protégées */}
         <Route
           path="/"
           element={
@@ -21,7 +21,15 @@ function App() {
           }
         />
         
-        {/* Routes pour les autres sections du dashboard */}
+        <Route
+          path="/users"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
         <Route
           path="/products"
           element={
