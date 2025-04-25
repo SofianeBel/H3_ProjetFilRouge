@@ -13,4 +13,4 @@ python-dotenv==1.0.0
 aiomysql==0.2.0  # Pour MySQL
 aiosqlite==0.19.0  # Pour SQLite (en développement)
 psycopg2-binary>=2.9.9  # Alternative to asyncpg for PostgreSQL
-fpdf2  # Ajout pour la génération de PDF 
+fpdf>=1.7  # Ajout pour la génération de PDF 
