@@ -3,13 +3,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
+import Register from './pages/Register';
 
 function App() {
   return (
     <Router>
       <Routes>
         {/* Route publique pour la page de connexion */}
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Routes protégées */}
         <Route
