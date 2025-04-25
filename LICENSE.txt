@@ -1,0 +1,21 @@
+-------------------------------------------------------------------------------
+                              LICENCE D’UTILISATION
+                               TOUS DROITS RÉSERVÉS
+-------------------------------------------------------------------------------
+
+Copyright (c) 2025 Cyna
+Tous droits réservés.
+
+Toute reproduction, représentation, modification, publication, transmission,
+altération totale ou partielle de ce logiciel, par quelque procédé que ce soit,
+et sur quelque support que ce soit, est interdite sans l’autorisation écrite
+préalable et expresse de Cyna.
+
+Ce logiciel est fourni « en l’état », sans aucune garantie d’aucune sorte,
+expresse ou implicite, y compris mais sans s’y limiter, les garanties de
+commercialisation, d’adaptation à un usage particulier, et d’absence de
+contrefaçon. En aucun cas, Cyna ne pourra être
+tenu pour responsable de tout dommage, direct ou indirect, résultant de l’utilisation
+de ce logiciel ou de l’impossibilité de l’utiliser.
+
+-------------------------------------------------------------------------------
