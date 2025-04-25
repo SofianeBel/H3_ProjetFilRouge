@@ -9,14 +9,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Route publique pour la page de connexion */}
-        <Route path="/" element={<Login />} />
+        {/* Routes publiques */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Routes protégées */}
-        <Route
-          path="/"
+        {/* Route d'accueil - redirige vers le tableau de bord si authentifié, sinon vers login */}
+        <Route 
+          path="/" 
           element={
             <PrivateRoute>
               <Dashboard />
@@ -24,6 +23,7 @@ function App() {
           }
         />
         
+        {/* Routes protégées du tableau de bord */}
         <Route
           path="/users"
           element={
@@ -78,8 +78,8 @@ function App() {
           }
         />
 
-        {/* Redirection par défaut vers la page d'accueil */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Redirection par défaut vers la page de connexion */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
