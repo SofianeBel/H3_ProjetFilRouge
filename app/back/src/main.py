@@ -15,7 +15,10 @@ app = FastAPI(
 # Configure CORS
 origins = [
     "http://localhost:3000",  # React frontend
+    "http://127.0.0.1:3000",  # React frontend alternative URL
     "http://localhost:8000",  # Development
+    "http://127.0.0.1:8000",  # Development alternative URL
+    # Ajoutez d'autres origines si nécessaire
 ]
 
 app.add_middleware(
@@ -24,6 +27,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],  # Expose tous les headers, utile pour le débogage
 )
 
 # Include routers
@@ -37,4 +41,12 @@ app.include_router(cart.router, prefix="/cart", tags=["Cart"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Cyna E-Commerce API"} 
+    return {"message": "Welcome to Cyna E-Commerce API"}
+
+# Route de diagnostic pour vérifier l'authentification
+@app.get("/auth-check")
+async def auth_check():
+    return {
+        "status": "active", 
+        "message": "Cette route permet de vérifier que l'API est en ligne et accessible"
+    } 
