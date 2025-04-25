@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import authService from '../../services/auth.service';
 
-const Navbar = ({ onMenuButtonClick }) => {
+const Navbar = ({ onMenuButtonClick, user }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Extraire les initiales du nom complet
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Gérer la déconnexion
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
+
   return (
     <header className="bg-white shadow-sm z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,17 +85,45 @@ const Navbar = ({ onMenuButtonClick }) => {
 
             {/* Menu profil utilisateur */}
             <div className="relative">
-              <button className="flex items-center focus:outline-none">
-                <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                  AD
+              <button 
+                className="flex items-center focus:outline-none"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <div className={`h-8 w-8 rounded-full ${user?.role === 'admin' ? 'bg-indigo-600' : 'bg-green-600'} flex items-center justify-center text-white`}>
+                  {getInitials(user?.full_name)}
                 </div>
-                <span className="ml-2 text-sm font-medium text-gray-700 hidden sm:block">Admin</span>
+                <span className="ml-2 text-sm font-medium text-gray-700 hidden sm:block">
+                  {user?.full_name || 'Utilisateur'}
+                </span>
                 <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5 text-gray-400 hidden sm:block" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>
-              {/* Dropdown menu - caché par défaut */}
-              {/* Nous pourrions ajouter un état pour l'afficher/masquer, mais pour simplifier, je le laisse caché */}
+              
+              {/* Dropdown menu */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                  <div className="px-4 py-2 border-b">
+                    <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
+                    <p className="text-xs text-gray-600">{user?.email}</p>
+                    <p className="text-xs font-medium text-gray-500 mt-1">
+                      {user?.role === 'admin' ? 'Administrateur' : 'Utilisateur standard'}
+                    </p>
+                  </div>
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Mon profil
+                  </a>
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Paramètres
+                  </a>
+                  <button 
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                  >
+                    Déconnexion
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

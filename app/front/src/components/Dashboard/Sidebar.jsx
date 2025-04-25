@@ -1,17 +1,24 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
-  // Liste des liens de navigation
-  const navItems = [
+const Sidebar = ({ isOpen, setIsOpen, isAdmin }) => {
+  // Liste des liens de navigation de base (accessibles à tous)
+  const baseNavItems = [
     { name: 'Tableau de bord', icon: 'home', path: '/' },
-    { name: 'Utilisateurs', icon: 'users', path: '/users' },
     { name: 'Produits', icon: 'box', path: '/products' },
     { name: 'Commandes', icon: 'shopping-cart', path: '/orders' },
+  ];
+
+  // Liens visibles uniquement pour les administrateurs
+  const adminNavItems = [
+    { name: 'Utilisateurs', icon: 'users', path: '/users' },
     { name: 'Clients', icon: 'users', path: '/customers' },
     { name: 'Statistiques', icon: 'chart-pie', path: '/analytics' },
     { name: 'Paramètres', icon: 'cog', path: '/settings' },
   ];
+
+  // Combiner les liens en fonction du rôle
+  const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
 
   return (
     <>
@@ -35,7 +42,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
             </svg>
-            <span className="ml-2 text-xl font-bold">Cyna Admin</span>
+            <span className="ml-2 text-xl font-bold">Cyna {isAdmin ? 'Admin' : 'Client'}</span>
           </div>
           {/* Bouton fermer sur mobile */}
           <button 
@@ -103,12 +110,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <Link to="/profile" className="flex items-center px-4 py-3 text-white hover:bg-indigo-800 rounded-lg transition duration-200">
             <div className="flex-shrink-0">
               <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
-                AD
+                {isAdmin ? 'AD' : 'US'}
               </div>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium">Admin</p>
-              <p className="text-xs text-indigo-300">admin@cyna.com</p>
+              <p className="text-sm font-medium">{isAdmin ? 'Admin' : 'Utilisateur'}</p>
+              <p className="text-xs text-indigo-300">{isAdmin ? 'admin@cyna.com' : 'utilisateur@cyna.com'}</p>
             </div>
           </Link>
         </div>
