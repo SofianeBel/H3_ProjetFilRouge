@@ -42,14 +42,8 @@ const UsersManagement = () => {
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-xl font-semibold text-gray-800">Gestion des Utilisateurs</h2>
-        <button
-          onClick={() => alert('La fonctionnalité d\'ajout sera disponible prochainement.')}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          Ajouter un utilisateur
-        </button>
       </div>
 
       {error && (
