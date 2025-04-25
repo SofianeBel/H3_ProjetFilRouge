@@ -45,4 +45,6 @@ class UserService {
   }
 }
 
-export default new UserService(); 
+// Assigner l'instance à une variable avant de l'exporter
+const userService = new UserService();
+export default userService; 
