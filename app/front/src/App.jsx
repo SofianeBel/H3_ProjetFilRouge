@@ -1,30 +1,55 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import RgpdGate from './pages/RgpdGate';
 import Login from './pages/Login';
+import Homepage from './pages/Homepage';
 import PrivateRoute from './components/PrivateRoute';
+import RgpdConsent from './pages/RgpdConsent';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
+  const hasConsent = true; // Replace with actual logic to check user consent
+
   return (
     <Router>
       <Routes>
-        {/* Route publique pour la page de connexion */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Navigate to="/welcome" />} />
 
-        {/* Route protégée pour la page d'accueil */}
+        <Route path="/welcome" element={<RgpdGate />} />
+        <Route path="/login" element={hasConsent ? <Login /> : <Navigate to="/welcome" />} />
+
         <Route
-          path="/"
+          path="/profile"
           element={
             <PrivateRoute>
-              <div>Page d'accueil protégée</div>
+              <ProfilePage />
             </PrivateRoute>
           }
         />
 
-        {/* Redirection par défaut vers la page d'accueil */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/rgpd"
+          element={
+            <PrivateRoute>
+              <RgpdConsent />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <Homepage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/welcome" replace />} />
       </Routes>
     </Router>
   );
 }
+
 
 export default App; 

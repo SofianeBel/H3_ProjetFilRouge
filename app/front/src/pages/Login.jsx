@@ -1,110 +1,97 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import authService from '../services/auth.service';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+  const [isSignup, setIsSignup] = useState(false);
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-        try {
-            // Utilisation de URLSearchParams pour un encodage correct
-            const params = new URLSearchParams();
-            params.append('username', email);
-            params.append('password', password);
-            params.append('grant_type', 'password');
+    try {
+      if (isSignup) {
+        await authService.register(email, password, fullName);
+      }
 
-            const response = await axios.post('http://localhost:8000/token', params, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
+      const user = await authService.login(email, password);
+      if (user) navigate('/home');
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            // Stockage du token dans le localStorage
-            localStorage.setItem('token', response.data.access_token);
-            
-            // Récupération des informations de l'utilisateur
-            const userResponse = await axios.get('http://localhost:8000/users/me', {
-                headers: {
-                    'Authorization': `Bearer ${response.data.access_token}`
-                }
-            });
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full space-y-6">
+        <h2 className="text-center text-2xl font-bold">
+          {isSignup ? "Créer un compte" : "Connexion"}
+        </h2>
 
-            // Stockage des informations de l'utilisateur
-            localStorage.setItem('user', JSON.stringify(userResponse.data));
+        {error && <p className="text-red-500">{error}</p>}
 
-            // Redirection vers la page d'accueil
-            navigate('/');
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Une erreur est survenue');
-        } finally {
-            setLoading(false);
-        }
-    };
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {isSignup && (
+            <input
+              type="text"
+              name="fullName"
+              placeholder="Nom complet"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          )}
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Connexion à votre compte
-                    </h2>
-                </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    {error && (
-                        <div className="rounded-md bg-red-50 p-4">
-                            <div className="text-sm text-red-700">{error}</div>
-                        </div>
-                    )}
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div>
-                            <label htmlFor="email" className="sr-only">Email</label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Adresse email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">Mot de passe</label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Mot de passe"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                    </div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Adresse email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            {loading ? 'Connexion en cours...' : 'Se connecter'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
+          <input
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            {loading ? "Chargement..." : isSignup ? "S'inscrire" : "Se connecter"}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-600">
+          {isSignup ? "Déjà inscrit ?" : "Pas encore de compte ?"}
+          <span
+            className="text-blue-600 hover:underline ml-2 cursor-pointer"
+            onClick={() => setIsSignup(!isSignup)}
+          >
+            {isSignup ? "Se connecter" : "S'inscrire"}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
 };
 
-export default Login; 
+export default Login;
