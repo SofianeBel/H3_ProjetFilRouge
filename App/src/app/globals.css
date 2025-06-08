@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@theme {
+  /* Couleurs principales Cyna */
+  --color-cyna-primary: #6B8DE5;
+  --color-cyna-secondary: #8E63E5;
+  --color-cyna-accent: #A67FFB;
+  --color-cyna-dark: #111318;
+  --color-cyna-dark-secondary: #161A22;
+  --color-cyna-border: #292e38;
+  
+  /* Variables Shadcn UI */
+  --background: 17 19 24; /* #111318 */
+  --foreground: 255 255 255;
+  --card: 22 26 34; /* #161A22 */
+  --card-foreground: 255 255 255;
+  --popover: 17 19 24;
+  --popover-foreground: 255 255 255;
+  --primary: 107 141 229; /* #6B8DE5 */
+  --primary-foreground: 255 255 255;
+  --secondary: 41 46 56; /* #292e38 */
+  --secondary-foreground: 255 255 255;
+  --muted: 41 46 56;
+  --muted-foreground: 156 163 175;
+  --accent: 166 127 251; /* #A67FFB */
+  --accent-foreground: 17 19 24;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --border: 41 46 56; /* #292e38 */
+  --input: 41 46 56;
+  --ring: 107 141 229; /* #6B8DE5 */
+  --radius: 0.75rem;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Gradient hero personnalisé */
+.gradient-hero {
+  background-image: linear-gradient(
+    to bottom, 
+    rgba(17, 19, 24, 0.3) 0%, 
+    rgba(17, 19, 24, 0.8) 70%, 
+    #111318 100%
+  ),
+  url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfIC0V0lG43dN-0S9vvCFH3tqGrHh2-6OkRf0le6ujTfPyf828vC7rXZNwPzysCh7XOnJpn7ZhCC8oq4tWy0MkqRTnXDrZeE7c5R7YwGUo3EUT5qumWDD63mrQKWW9s4wdYvUxlLSlzrUNrMNow3v2EAwy-eGCpAW0rycafQvG5ExHGXh_Tp6EBqduRcG2WXLn4H4WSOq9gPIAo0g3_bBbe8X4VSFe81UgMrvY2Xmo5PYIF73O0EoTKkgKpvr98yPI963T4ZtfltVs");
+}
+
+/* Utilities personnalisées pour Cyna - Nouvelle syntaxe v4 */
+@utility btn-cyna {
+  border-radius: 0.5rem;
+  padding: 1.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 200ms;
+  outline: none;
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--ring)), 0 0 0 2px hsl(var(--background));
+  }
+}
+
+@utility btn-primary {
+  background-color: #6B8DE5;
+  color: white;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  
+  &:hover {
+    transform: scale(1.05);
+    background-color: #8E63E5;
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 2px #A67FFB, 0 0 0 2px #111318;
+  }
+}
+
+@utility btn-secondary {
+  background-color: transparent;
+  border: 1px solid #292e38;
+  color: white;
+  
+  &:hover {
+    background-color: #292e38;
+    color: white;
+  }
+}
+
+@utility card-cyna {
+  border-radius: 0.75rem;
+  border: 1px solid #292e38;
+  background-color: #161A22;
+  padding: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  transition: all 300ms;
+}
+
+@utility card-hover {
+  &:hover {
+    border-color: rgba(166, 127, 251, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(166, 127, 251, 0.1);
+  }
+}
+
+@utility container-cyna {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  
+  @media (min-width: 768px) {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@utility section-separator {
+  border-top: 1px solid #292e38;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* Animation pour les gradients */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Focus visible amélioré pour l'accessibilité */
+.focus-visible {
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #6B8DE5, 0 0 0 2px #111318;
+  }
+}
+
+/* Typography responsive */
+.text-hero {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  
+  @media (min-width: 640px) {
+    font-size: 3rem;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 3.75rem;
+  }
+}
+
+.text-section-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  
+  @media (min-width: 640px) {
+    font-size: 2.25rem;
+  }
+}
+
+.text-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
