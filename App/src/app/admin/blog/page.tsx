@@ -3,8 +3,19 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { formatDate } from '@/lib/utils'
 
+interface BlogPost {
+  id: string
+  title: string
+  excerpt: string
+  published: boolean
+  createdAt: Date
+  category?: {
+    name: string
+  }
+}
+
 // Composant pour afficher un article
-function BlogPostCard({ post }: { post: any }) {
+function BlogPostCard({ post }: { post: BlogPost }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex justify-between items-start">
@@ -60,11 +71,27 @@ async function BlogList() {
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
+      {posts.map((post: BlogPost) => (
         <BlogPostCard key={post.id} post={post} />
       ))}
     </div>
   )
+}
+
+// Fonction pour supprimer un article
+async function handleDelete(id: string) {
+  if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+    try {
+      const response = await fetch(`/api/blog?id=${id}`, {
+        method: 'DELETE',
+      })
+      if (response.ok) {
+        window.location.reload()
+      }
+    } catch {
+      alert('Une erreur est survenue')
+    }
+  }
 }
 
 // Page principale
@@ -109,13 +136,13 @@ export default function AdminBlogPage() {
             <input
               type="text"
               placeholder="Rechercher un article..."
-              className="flex-1 p-2 border rounded-md"
+              className="flex-1 p-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
-            <select className="p-2 border rounded-md">
+            <select className="p-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
               <option value="">Toutes les catégories</option>
               {/* Liste des catégories */}
             </select>
-            <select className="p-2 border rounded-md">
+            <select className="p-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
               <option value="">Tous les statuts</option>
               <option value="published">Publiés</option>
               <option value="draft">Brouillons</option>

@@ -15,8 +15,8 @@ function NewBlogPostForm() {
           type="text"
           name="title"
           id="title"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
@@ -29,8 +29,8 @@ function NewBlogPostForm() {
           name="excerpt"
           id="excerpt"
           rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
@@ -43,8 +43,8 @@ function NewBlogPostForm() {
           name="content"
           id="content"
           rows={10}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
@@ -54,9 +54,9 @@ function NewBlogPostForm() {
           Catégorie
         </label>
         <select
-          name="category"
-          id="category"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          name="categoryId"
+          id="categoryId"
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
           <option value="">Sélectionner une catégorie</option>
           {/* Liste des catégories */}
@@ -73,7 +73,7 @@ function NewBlogPostForm() {
           name="tags"
           id="tags"
           placeholder="Séparés par des virgules"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
