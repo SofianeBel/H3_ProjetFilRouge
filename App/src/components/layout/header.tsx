@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { Menu, X, User, LogOut, Settings } from "lucide-react"
+import { Menu, X, User, LogOut } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 import { cn } from "@/lib/utils"
 
@@ -62,7 +62,7 @@ export function Header() {
               // Utilisateur connecté
               <div className="hidden md:flex items-center gap-3">
                 {/* Bouton admin conditionnel */}
-                {(session.user?.role === 'ADMIN' || session.user?.role === 'SUPER_ADMIN') && (
+                {((session.user as any)?.role === 'ADMIN' || (session.user as any)?.role === 'SUPER_ADMIN') && (
                   <Link
                     href="/admin"
                     className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:bg-[#292e38] text-gray-300 focus-visible"
@@ -88,8 +88,8 @@ export function Header() {
                         <p className="text-sm font-medium text-white">{session.user?.name}</p>
                         <p className="text-xs text-gray-400">{session.user?.email}</p>
                         <p className="text-xs text-[#A67FFB] mt-1">
-                          {session.user?.role === 'ADMIN' ? 'Administrateur' : 
-                           session.user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Client'}
+                          {(session.user as any)?.role === 'ADMIN' ? 'Administrateur' : 
+                           (session.user as any)?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Client'}
                         </p>
                       </div>
                       <button

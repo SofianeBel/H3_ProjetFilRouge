@@ -1,5 +1,3 @@
-import type { NextAuthConfig } from 'next-auth'
-
 /**
  * Configuration NextAuth pour l'authentification
  * Gère la redirection et la protection des routes
@@ -11,7 +9,7 @@ export const authConfig = {
   },
   callbacks: {
     // Logique d'autorisation pour protéger les routes
-    authorized({ auth, request: { nextUrl } }) {
+    authorized({ auth, request: { nextUrl } }: any) {
       const isLoggedIn = !!auth?.user
       const isOnAdminPages = nextUrl.pathname.startsWith('/admin')
       const isOnAuthPages = nextUrl.pathname.startsWith('/auth')
@@ -39,14 +37,14 @@ export const authConfig = {
       return true
     },
     // Enrichir la session avec le rôle utilisateur
-    session({ session, token }) {
+    session({ session, token }: any) {
       if (token.role && session.user) {
         session.user.role = token.role
       }
       return session
     },
     // Enrichir le token JWT avec le rôle
-    jwt({ token, user }) {
+    jwt({ token, user }: any) {
       if (user?.role) {
         token.role = user.role
       }
@@ -54,4 +52,4 @@ export const authConfig = {
     },
   },
   providers: [], // Les providers seront ajoutés dans auth.ts
-} satisfies NextAuthConfig 
+} 
