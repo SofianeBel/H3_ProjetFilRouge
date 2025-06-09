@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Menu, X } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
+import { Menu, X, User, LogOut, Settings } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 import { cn } from "@/lib/utils"
 
@@ -12,6 +13,8 @@ import { cn } from "@/lib/utils"
  */
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const { data: session, status } = useSession()
 
   // Navigation principale - adaptée aux services Cyna
   const navigation = [
@@ -51,21 +54,82 @@ export function Header() {
 
           {/* Actions et menu mobile */}
           <div className="flex items-center gap-3">
-            {/* Bouton connexion admin - caché sur mobile */}
-            <Link
-              href="/admin"
-              className="hidden rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:bg-[#292e38] text-gray-300 md:block focus-visible"
-            >
-              Admin
-            </Link>
+            {/* Boutons d'authentification conditionnels */}
+            {status === "loading" ? (
+              // État de chargement
+              <div className="w-8 h-8 bg-[#292e38] rounded-full animate-pulse" />
+            ) : session ? (
+              // Utilisateur connecté
+              <div className="hidden md:flex items-center gap-3">
+                {/* Bouton admin conditionnel */}
+                {(session.user?.role === 'ADMIN' || session.user?.role === 'SUPER_ADMIN') && (
+                  <Link
+                    href="/admin"
+                    className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:bg-[#292e38] text-gray-300 focus-visible"
+                  >
+                    Admin
+                  </Link>
+                )}
+                
+                {/* Menu utilisateur */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 p-2 rounded-lg text-gray-300 hover:bg-[#292e38] transition-colors"
+                  >
+                    <User className="h-5 w-5" />
+                    <span className="hidden lg:block">{session.user?.name}</span>
+                  </button>
+                  
+                  {/* Dropdown menu utilisateur */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-[#1a1f2e] border border-[#292e38] rounded-lg shadow-xl z-50">
+                      <div className="p-3 border-b border-[#292e38]">
+                        <p className="text-sm font-medium text-white">{session.user?.name}</p>
+                        <p className="text-xs text-gray-400">{session.user?.email}</p>
+                        <p className="text-xs text-[#A67FFB] mt-1">
+                          {session.user?.role === 'ADMIN' ? 'Administrateur' : 
+                           session.user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Client'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => signOut({ callbackUrl: '/' })}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#292e38] transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Se déconnecter
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Utilisateur non connecté
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/auth/login"
+                  className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:bg-[#292e38] text-gray-300 focus-visible"
+                >
+                  Se connecter
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="btn-primary focus-visible"
+                >
+                  S'inscrire
+                </Link>
+              </div>
+            )}
             
-            {/* Bouton principal CTA */}
-            <Link
-              href="/contact"
-              className="btn-primary focus-visible"
-            >
-              Nous contacter
-            </Link>
+            {/* Bouton principal CTA pour clients connectés */}
+            {!session && (
+              <Link
+                href="/contact"
+                className="btn-primary focus-visible"
+              >
+                Nous contacter
+              </Link>
+            )}
 
             {/* Bouton menu mobile */}
             <button

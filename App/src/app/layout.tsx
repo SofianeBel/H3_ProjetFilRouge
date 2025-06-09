@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/providers/auth-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -71,9 +72,11 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-[#111318] text-white min-h-screen`}
         style={{ fontFamily: "var(--font-inter), \"Noto Sans\", sans-serif" }}
       >
-        <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-          {children}
-        </div>
+        <AuthProvider>
+          <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+            {children}
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

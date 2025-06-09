@@ -8,9 +8,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Base de données SQLite pour développement
+//datasource db {
+  //provider = "sqlite"
+  //url      = "file:./dev.db"
+//}
+
+// Base de données PostgreSQL pour production (décommenter pour migrer)
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+   provider = "postgresql"
+   url      = env("DATABASE_URL")
 }
 
 // Modèle pour les demandes de contact
@@ -146,12 +153,19 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
+  password      String?   // Pour l'authentification par credentials
   emailVerified DateTime?
   image         String?
-  role          UserRole  @default(ADMIN)
+  role          UserRole  @default(CLIENT)
   accounts      Account[]
   sessions      Session[]
   blogPosts     BlogPost[]
+  
+  // Relations RGPD
+  consentRecords   DataProcessingConsent[]
+  exportRequests   DataExportRequest[]
+  authLogs         AuthenticationLog[]
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -165,6 +179,74 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// Nouveau modèle pour la récupération de mot de passe
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  email      String
+  token      String   @unique
+  expires    DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+// Modèle pour les consentements RGPD
+model DataProcessingConsent {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consentType String   // "marketing", "analytics", "cookies", "profiling"
+  purpose     String   // Description détaillée du traitement
+  granted     Boolean  @default(false)
+  grantedAt   DateTime?
+  revokedAt   DateTime?
+  ipAddress   String?  // IP lors du consentement
+  userAgent   String?  // Browser info lors du consentement
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, consentType])
+  @@map("data_processing_consents")
+}
+
+// Modèle pour les demandes d'export de données RGPD
+model DataExportRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      DataExportStatus @default(PENDING)
+  requestedAt DateTime @default(now())
+  processedAt DateTime?
+  completedAt DateTime?
+  downloadUrl String?
+  expiresAt   DateTime?  // URL d'expiration
+  ipAddress   String?    // IP lors de la demande
+  fileSize    Int?       // Taille du fichier généré en bytes
+
+  @@map("data_export_requests")
+}
+
+// Modèle pour les logs d'authentification et sécurité
+model AuthenticationLog {
+  id          String   @id @default(cuid())
+  userId      String?  // Peut être null pour les tentatives échouées
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  event       AuthEventType
+  provider    String?  // "credentials", "google", "microsoft", etc.
+  success     Boolean
+  ipAddress   String
+  userAgent   String
+  location    String?  // Géolocalisation approximative
+  details     String?  // Détails supplémentaires en JSON
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([event, createdAt])
+  @@index([ipAddress, createdAt])
+  @@map("authentication_logs")
 }
 
 // Enums pour définir les statuts
@@ -188,6 +270,28 @@ enum NewsletterStatus {
 }
 
 enum UserRole {
+  CLIENT
   ADMIN
   SUPER_ADMIN
+}
+
+enum DataExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum AuthEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_RESET_REQUEST
+  PASSWORD_RESET_SUCCESS
+  EMAIL_VERIFICATION
+  ACCOUNT_LOCKED
+  SUSPICIOUS_ACTIVITY
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
 }
