@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+//import { prisma } from '@/lib/prisma'
 
 // Composant pour le formulaire de création d'article
 function NewBlogPostForm() {

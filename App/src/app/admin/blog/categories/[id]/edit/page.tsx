@@ -38,7 +38,7 @@ async function EditCategoryForm({ id }: { id: string }) {
             const error = await response.json()
             alert(error.error || 'Une erreur est survenue')
           }
-        } catch (error) {
+        } catch {
           alert('Une erreur est survenue')
         }
       }}

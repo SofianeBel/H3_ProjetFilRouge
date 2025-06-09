@@ -2,8 +2,17 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
+interface Category {
+  id: string
+  name: string
+  description: string | null
+  _count: {
+    posts: number
+  }
+}
+
 // Composant pour afficher une catégorie
-function CategoryCard({ category }: { category: any }) {
+function CategoryCard({ category }: { category: Category }) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-start">
@@ -61,7 +70,7 @@ async function CategoryList() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {categories.map((category) => (
+      {categories.map((category: Category) => (
         <CategoryCard key={category.id} category={category} />
       ))}
     </div>
@@ -95,7 +104,7 @@ function NewCategoryForm() {
             const error = await response.json()
             alert(error.error || 'Une erreur est survenue')
           }
-        } catch (error) {
+        } catch {
           alert('Une erreur est survenue')
         }
       }}
