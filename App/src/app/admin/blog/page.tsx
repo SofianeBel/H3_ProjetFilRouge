@@ -9,9 +9,21 @@ interface BlogPost {
   excerpt: string
   published: boolean
   createdAt: Date
-  category?: {
+  category: {
     name: string
-  }
+    id: string
+    createdAt: Date
+    updatedAt: Date
+    slug: string
+    description: string | null
+    color: string | null
+  } | null
+  author: {
+    name: string | null
+    email: string
+    image: string | null
+    role: string
+  } | null
 }
 
 // Composant pour afficher un article
