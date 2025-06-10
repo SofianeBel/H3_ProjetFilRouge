@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 /**
  * Schéma de validation pour les articles de blog
@@ -19,46 +20,92 @@ const blogPostSchema = z.object({
   ogImage: z.string().optional(),
 })
 
+// Fonction utilitaire pour convertir en booléen
+function toBoolean(value: unknown): boolean {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') return value.toLowerCase() === 'true'
+  if (typeof value === 'number') return value === 1
+  return false
+}
+
 /**
  * GET /api/blog
  * Récupère la liste des articles avec filtres et pagination
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const category = searchParams.get('category')
+    const { searchParams } = new URL(request.url)
+    const categoryId = searchParams.get('categoryId')
     const status = searchParams.get('status')
     const search = searchParams.get('search')
 
-    // Construire la requête
-    const where = {
-      ...(category && { categoryId: category }),
-      ...(status === 'published' && { published: true }),
-      ...(status === 'draft' && { published: false }),
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: 'insensitive' } },
-          { content: { contains: search, mode: 'insensitive' } },
-        ],
-      }),
+    // Construire la clause where
+    const where: Prisma.BlogPostWhereInput = {}
+    
+    if (categoryId) {
+      where.categoryId = categoryId
+    }
+    
+    if (status) {
+      where.published = status === 'published'
+    }
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { excerpt: { contains: search } }
+      ]
     }
 
     const posts = await prisma.blogPost.findMany({
       where,
-      include: {
-        category: true,
-        author: true,
+      select: {
+        id: true,
+        title: true,
+        excerpt: true,
+        published: true,
+        createdAt: true,
+        category: {
+          select: {
+            name: true,
+            id: true,
+            createdAt: true,
+            updatedAt: true,
+            slug: true,
+            description: true,
+            color: true
+          }
+        },
+        author: {
+          select: {
+            name: true,
+            email: true,
+            image: true
+          }
+        }
       },
       orderBy: {
-        createdAt: 'desc',
-      },
+        createdAt: 'desc'
+      }
     })
 
-    return NextResponse.json(posts)
+    // Convertir les données en format attendu
+    const formattedPosts = posts.map(post => ({
+      ...post,
+      published: toBoolean(post.published),
+      createdAt: new Date(post.createdAt),
+      category: post.category ? {
+        ...post.category,
+        createdAt: new Date(post.category.createdAt),
+        updatedAt: new Date(post.category.updatedAt)
+      } : null
+    }))
+
+    return NextResponse.json(formattedPosts)
   } catch (error) {
     console.error('Erreur API blog:', error)
     return NextResponse.json(
-      { error: "Erreur lors de la récupération des articles" },
+      { error: 'Une erreur est survenue lors de la récupération des articles' },
       { status: 500 }
     )
   }
@@ -72,7 +119,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const validatedData = blogPostSchema.parse(body)
-
+    
     const post = await prisma.blogPost.create({
       data: {
         ...validatedData,
@@ -107,28 +154,37 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { id, ...data } = body
-    const validatedData = blogPostSchema.parse(data)
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
 
-    const post = await prisma.blogPost.update({
-      where: { id },
-      data: validatedData,
-    })
-
-    return NextResponse.json(post)
-  } catch (error) {
-    console.error('Erreur API blog:', error)
-
-    if (error instanceof z.ZodError) {
+    if (!id) {
       return NextResponse.json(
-        { error: "Données invalides", details: error.errors },
+        { error: 'ID de l\'article manquant' },
         { status: 400 }
       )
     }
 
+    const data = await request.json()
+
+    const updatedPost = await prisma.blogPost.update({
+      where: { id },
+      data: {
+        title: data.title,
+        slug: data.slug,
+        excerpt: data.excerpt,
+        content: data.content,
+        published: data.published,
+        featured: data.featured,
+        categoryId: data.categoryId || null,
+        tags: data.tags
+      }
+    })
+
+    return NextResponse.json(updatedPost)
+  } catch (error) {
+    console.error('Erreur API blog:', error)
     return NextResponse.json(
-      { error: "Erreur lors de la mise à jour de l'article" },
+      { error: 'Une erreur est survenue lors de la mise à jour de l\'article' },
       { status: 500 }
     )
   }
@@ -145,23 +201,20 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "ID de l'article requis" },
+        { error: 'ID de l\'article manquant' },
         { status: 400 }
       )
     }
 
     await prisma.blogPost.delete({
-      where: { id },
+      where: { id }
     })
 
-    return NextResponse.json(
-      { message: "Article supprimé avec succès" },
-      { status: 200 }
-    )
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Erreur API blog:', error)
     return NextResponse.json(
-      { error: "Erreur lors de la suppression de l'article" },
+      { error: 'Une erreur est survenue lors de la suppression de l\'article' },
       { status: 500 }
     )
   }

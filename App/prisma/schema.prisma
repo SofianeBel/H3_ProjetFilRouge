@@ -72,8 +72,8 @@ model BlogPost {
   content     String   // Contenu en markdown
   
   // Métadonnées
-  published   Boolean  @default(false)
-  featured    Boolean  @default(false)
+  published   Int      @default(0) // 0 = false, 1 = true
+  featured    Int      @default(0) // 0 = false, 1 = true
   viewCount   Int      @default(0)
   readTime    Int?     // Temps de lecture en minutes
   

@@ -1,33 +1,27 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { formatDate } from '@/lib/utils'
+'use client'
 
-interface BlogPost {
-  id: string
-  title: string
-  excerpt: string
-  published: boolean
-  createdAt: Date
-  category: {
-    name: string
-    id: string
-    createdAt: Date
-    updatedAt: Date
-    slug: string
-    description: string | null
-    color: string | null
-  } | null
-  author: {
-    name: string | null
-    email: string
-    image: string | null
-    role: string
-  } | null
-}
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { formatDate } from '@/lib/utils'
+import type { BlogPost } from './types'
 
 // Composant pour afficher un article
 function BlogPostCard({ post }: { post: BlogPost }) {
+  const handleDelete = async (id: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+      try {
+        const response = await fetch(`/api/blog?id=${id}`, {
+          method: 'DELETE',
+        })
+        if (response.ok) {
+          window.location.reload()
+        }
+      } catch {
+        alert('Une erreur est survenue')
+      }
+    }
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex justify-between items-start">
@@ -69,41 +63,60 @@ function BlogPostCard({ post }: { post: BlogPost }) {
   )
 }
 
-// Composant pour la liste des articles
-async function BlogList() {
-  const posts = await prisma.blogPost.findMany({
-    include: {
-      category: true,
-      author: true
-    },
-    orderBy: {
-      createdAt: 'desc'
+// Composant pour la liste des articles (client)
+function BlogList() {
+  const [posts, setPosts] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        const response = await fetch('/api/blog')
+        if (!response.ok) {
+          throw new Error('Erreur lors de la récupération des articles')
+        }
+        const data = await response.json()
+        setPosts(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      } finally {
+        setLoading(false)
+      }
     }
-  })
+
+    fetchPosts()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 animate-pulse">
+            <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+            <div className="h-3 bg-gray-300 rounded w-1/2 mb-2"></div>
+            <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-700">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
-      {posts.map((post: BlogPost) => (
+      {posts.map((post) => (
         <BlogPostCard key={post.id} post={post} />
       ))}
     </div>
   )
-}
-
-// Fonction pour supprimer un article
-async function handleDelete(id: string) {
-  if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
-    try {
-      const response = await fetch(`/api/blog?id=${id}`, {
-        method: 'DELETE',
-      })
-      if (response.ok) {
-        window.location.reload()
-      }
-    } catch {
-      alert('Une erreur est survenue')
-    }
-  }
 }
 
 // Page principale
@@ -162,20 +175,8 @@ export default function AdminBlogPage() {
           </div>
         </div>
 
-        {/* Liste des articles avec suspense */}
-        <Suspense fallback={
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 animate-pulse">
-                <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-              </div>
-            ))}
-          </div>
-        }>
-          <BlogList />
-        </Suspense>
+        {/* Liste des articles */}
+        <BlogList />
       </main>
     </div>
   )
