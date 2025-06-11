@@ -8,7 +8,13 @@ const nextConfig = {
   // Autoriser les guillemets non échappés pour éviter les erreurs de build
   typescript: {
     ignoreBuildErrors: false
-  }
+  },
+  // Configuration des source maps
+  productionBrowserSourceMaps: true,
+  // Optimisations de build
+  swcMinify: true,
+  poweredByHeader: false,
+  reactStrictMode: true
 };
 
 export default nextConfig; 
