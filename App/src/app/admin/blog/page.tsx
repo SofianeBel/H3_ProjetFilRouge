@@ -6,18 +6,26 @@ import { formatDate } from '@/lib/utils'
 import type { BlogPost } from './types'
 
 // Composant pour afficher un article
-function BlogPostCard({ post }: { post: BlogPost }) {
+function BlogPostCard({ post, onDelete }: { post: BlogPost; onDelete: (id: string) => void }) {
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDelete = async (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.')) {
+      setIsDeleting(true)
       try {
         const response = await fetch(`/api/blog?id=${id}`, {
           method: 'DELETE',
         })
         if (response.ok) {
-          window.location.reload()
+          onDelete(id)
+        } else {
+          const error = await response.json()
+          throw new Error(error.message || 'Une erreur est survenue lors de la suppression')
         }
-      } catch {
-        alert('Une erreur est survenue')
+      } catch (error) {
+        alert(error instanceof Error ? error.message : 'Une erreur est survenue')
+      } finally {
+        setIsDeleting(false)
       }
     }
   }
@@ -53,9 +61,10 @@ function BlogPostCard({ post }: { post: BlogPost }) {
           </Link>
           <button
             onClick={() => handleDelete(post.id)}
-            className="text-red-600 hover:text-red-800"
+            disabled={isDeleting}
+            className={`text-red-600 hover:text-red-800 ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Supprimer
+            {isDeleting ? 'Suppression...' : 'Supprimer'}
           </button>
         </div>
       </div>
@@ -69,24 +78,28 @@ function BlogList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const response = await fetch('/api/blog')
-        if (!response.ok) {
-          throw new Error('Erreur lors de la récupération des articles')
-        }
-        const data = await response.json()
-        setPosts(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue')
-      } finally {
-        setLoading(false)
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch('/api/blog')
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des articles')
       }
+      const data = await response.json()
+      setPosts(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchPosts()
   }, [])
+
+  const handleDelete = (id: string) => {
+    setPosts(posts.filter(post => post.id !== id))
+  }
 
   if (loading) {
     return (
@@ -106,6 +119,16 @@ function BlogList() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <p className="text-red-700">{error}</p>
+        <button
+          onClick={() => {
+            setError(null)
+            setLoading(true)
+            fetchPosts()
+          }}
+          className="mt-2 text-sm text-red-600 hover:text-red-800"
+        >
+          Réessayer
+        </button>
       </div>
     )
   }
@@ -113,7 +136,7 @@ function BlogList() {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <BlogPostCard key={post.id} post={post} />
+        <BlogPostCard key={post.id} post={post} onDelete={handleDelete} />
       ))}
     </div>
   )

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (status) {
-      where.published = status === 'published'
+      where.published = status === 'published' ? 1 : 0
     }
     
     if (search) {
@@ -123,6 +123,9 @@ export async function POST(request: NextRequest) {
     const post = await prisma.blogPost.create({
       data: {
         ...validatedData,
+        published: validatedData.published ? 1 : 0,
+        featured: validatedData.featured ? 1 : 0,
+        categoryId: validatedData.categoryId || null,
         slug: validatedData.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -206,13 +209,47 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await prisma.blogPost.delete({
-      where: { id }
+    // Vérifier d'abord si l'article existe
+    const post = await prisma.blogPost.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        author: true
+      }
     })
 
-    return NextResponse.json({ success: true })
+    if (!post) {
+      return NextResponse.json(
+        { error: 'Article non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    // Supprimer l'article
+    await prisma.blogPost.delete({
+      where: { id },
+      include: {
+        category: true,
+        author: true
+      }
+    })
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Article supprimé avec succès'
+    })
   } catch (error) {
     console.error('Erreur API blog:', error)
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        return NextResponse.json(
+          { error: 'Article non trouvé' },
+          { status: 404 }
+        )
+      }
+    }
+
     return NextResponse.json(
       { error: 'Une erreur est survenue lors de la suppression de l\'article' },
       { status: 500 }
