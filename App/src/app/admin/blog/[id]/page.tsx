@@ -63,7 +63,7 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             id="title"
             defaultValue={post.title}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <div>
@@ -79,7 +79,7 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             id="slug"
             defaultValue={post.slug}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <div>
@@ -95,7 +95,7 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             rows={3}
             defaultValue={post.excerpt}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <div>
@@ -111,7 +111,7 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             rows={10}
             defaultValue={post.content}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <div className="flex items-center">
@@ -119,8 +119,8 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             type="checkbox"
             name="published"
             id="published"
-            defaultChecked={post.published}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            defaultChecked={Boolean(post.published)}
+            className="h-5 w-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
           />
           <label
             htmlFor="published"
@@ -134,8 +134,8 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             type="checkbox"
             name="featured"
             id="featured"
-            defaultChecked={post.featured}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            defaultChecked={Boolean(post.featured)}
+            className="h-5 w-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
           />
           <label
             htmlFor="featured"
@@ -155,7 +155,7 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             name="categoryId"
             id="categoryId"
             defaultValue={post.categoryId || ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           >
             <option value="">Aucune catégorie</option>
             {/* Liste des catégories */}
@@ -173,7 +173,7 @@ function EditBlogPostForm({ post }: { post: BlogPost }) {
             name="tags"
             id="tags"
             defaultValue={post.tags}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <div className="flex justify-end space-x-3">
