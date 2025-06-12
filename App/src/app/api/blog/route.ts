@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     const posts = await prisma.blogPost.findMany({
-        where,
+      where,
       select: {
         id: true,
         title: true,
@@ -213,11 +213,7 @@ export async function DELETE(request: NextRequest) {
 
     // Vérifier d'abord si l'article existe
     const post = await prisma.blogPost.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        author: true
-      }
+      where: { id }
     })
 
     if (!post) {
@@ -229,11 +225,7 @@ export async function DELETE(request: NextRequest) {
 
     // Supprimer l'article
     await prisma.blogPost.delete({
-      where: { id },
-      include: {
-        category: true,
-        author: true
-      }
+      where: { id }
     })
 
     return NextResponse.json({ 
