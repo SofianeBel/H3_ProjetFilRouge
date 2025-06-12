@@ -1,6 +1,5 @@
 'use client'
 
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
@@ -91,8 +90,8 @@ function CategoriesList({ categories }: { categories: Category[] }) {
   )
 }
 
-// Composant serveur pour les données
-async function CategoriesData() {
+// Page principale (composant serveur)
+export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
     include: {
       _count: {
@@ -104,10 +103,6 @@ async function CategoriesData() {
     }
   })
 
-  return <CategoriesList categories={categories} />
-}
-
-export default function CategoriesPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -130,16 +125,7 @@ export default function CategoriesPage() {
           </div>
 
           <div className="mt-8">
-            <Suspense
-              fallback={
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-                  <p className="mt-4 text-gray-500">Chargement...</p>
-                </div>
-              }
-            >
-              <CategoriesData />
-            </Suspense>
+            <CategoriesList categories={categories} />
           </div>
         </div>
       </div>
