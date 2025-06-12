@@ -30,7 +30,6 @@ export function Footer() {
     ],
     entreprise: [
       { name: "À propos", href: "/about" },
-      { name: "Équipe", href: "/team" },
       { name: "Carrières", href: "/careers" },
       { name: "Contact", href: "/contact" },
     ],

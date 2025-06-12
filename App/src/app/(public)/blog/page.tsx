@@ -1,7 +1,13 @@
+import { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Clock, ArrowRight, Filter } from "lucide-react"
+import { Calendar, Clock, ArrowRight, Filter, Search } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+
+export const metadata: Metadata = {
+  title: "Blog cybersécurité | Cyna",
+  description: "Actualités cyber, conseils sécurité, tendances cybersécurité pour PME et MSP. Articles d'experts français en cybersécurité.",
+}
 
 /**
  * Page principale du blog

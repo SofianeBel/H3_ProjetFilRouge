@@ -1,19 +1,22 @@
 "use client"
 
 import { SessionProvider } from "next-auth/react"
+import { AuthProvider as AuthContextProvider } from "@/context/AuthContext"
 
 interface AuthProviderProps {
   children: React.ReactNode
 }
 
 /**
- * Provider NextAuth pour gérer les sessions utilisateur
- * Wrapper autour de SessionProvider pour l'authentification globale
+ * Provider d'authentification principal
+ * Combine NextAuth SessionProvider avec notre contexte personnalisé
  */
 export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <SessionProvider>
-      {children}
+      <AuthContextProvider>
+        {children}
+      </AuthContextProvider>
     </SessionProvider>
   )
 } 

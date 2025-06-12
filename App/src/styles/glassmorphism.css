@@ -1,0 +1,209 @@
+/* Classes utilitaires pour les effets glassmorphism modernes */
+/* 
+ * HARMONISATION VISUELLE - Navbar & Menu Profil
+ * Objectif : Créer une famille visuelle cohérente avec des capsules glass premium
+ * Style inspiré des SaaS modernes (Linear, Vercel, etc.)
+ */
+
+/* Glassmorphism de base pour navbar - harmonisé avec le menu profil */
+.glass-navbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Support pour les navigateurs qui ne supportent pas backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .glass-navbar {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Effet glassmorphism pour les dropdowns - cohérent avec la navbar */
+.glass-dropdown {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Animation de transition douce pour le glassmorphism */
+.glass-transition {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Effet de hover pour les éléments glass */
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Variant sombre pour le mode dark (si nécessaire) */
+.glass-dark {
+  background: rgba(17, 25, 40, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Navbar premium pour un effet plus marqué (style SaaS pro) */
+.glass-navbar-premium {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Transition ultra-fluide pour la navbar premium */
+.glass-transition-ultra {
+  transition: 
+    background 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    backdrop-filter 0.3s ease-out,
+    box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border 0.3s ease-out;
+}
+
+/* Navbar ULTRA Premium - Le summum du glassmorphism pour le scroll */
+.glass-navbar-ultra {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.9) 100%
+  );
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  
+  /* Bordure avec gradient subtil pour plus de profondeur */
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  
+  /* Ombres multicouches pour un effet de profondeur premium */
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset,    /* Bordure interne lumineuse */
+    0 2px 4px rgba(0, 0, 0, 0.02),                /* Ombre très subtile proche */
+    0 8px 24px rgba(0, 0, 0, 0.08),               /* Ombre principale */
+    0 16px 48px rgba(0, 0, 0, 0.12),              /* Ombre de profondeur */
+    0 24px 80px rgba(0, 0, 0, 0.08);              /* Ombre de diffusion */
+    
+  /* Transition ultra-fluide */
+  transition: 
+    background 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    backdrop-filter 0.3s ease-out,
+    box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.2s ease-out;
+}
+
+/* Effet hover subtil pour navbar ultra (au survol) */
+.glass-navbar-ultra:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.87) 50%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(34px) saturate(1.9);
+  -webkit-backdrop-filter: blur(34px) saturate(1.9);
+  
+  /* Ombres légèrement renforcées au hover */
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.7) inset,
+    0 4px 8px rgba(0, 0, 0, 0.03),
+    0 12px 28px rgba(0, 0, 0, 0.09),
+    0 20px 56px rgba(0, 0, 0, 0.13),
+    0 28px 90px rgba(0, 0, 0, 0.09);
+}
+
+/* Effet de bordure gradient avec pseudo-élément pour navbar ultra */
+.glass-navbar-ultra::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.3) 30%,
+    rgba(255, 255, 255, 0.1) 70%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+/* Support pour navigateurs sans backdrop-filter avancé */
+@supports not (backdrop-filter: blur(32px)) {
+  .glass-navbar-ultra {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* États responsive pour mobile */
+@media (max-width: 768px) {
+  .glass-navbar {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .glass-navbar-premium {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  
+  .glass-navbar-ultra {
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    /* Réduction des ombres pour mobile (performance) */
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+      0 4px 16px rgba(0, 0, 0, 0.1),
+      0 12px 32px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Fond pour améliorer la lisibilité du texte en position de base */
+.navbar-transparent {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Classes d'harmonisation pour maintenir la cohérence */
+.glass-button {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Classe pour les éléments qui doivent s'intégrer à la famille glass */
+.glass-family {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+} 

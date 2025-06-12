@@ -5,19 +5,15 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
-// Base de données SQLite pour développement
-//datasource db {
-  //provider = "sqlite"
-  //url      = "file:./dev.db"
-//}
-
-// Base de données PostgreSQL pour production (décommenter pour migrer)
+// Configuration pour Vercel Postgres (utilise Neon sous le capot)
 datasource db {
-   provider = "postgresql"
-   url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 // Modèle pour les demandes de contact
@@ -193,6 +189,40 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+// Modèle pour les offres d'emploi
+model JobOffer {
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  description  String   // Description complète du poste
+  requirements String   // Prérequis et compétences requises (JSON)
+  advantages   String   // Avantages du poste (JSON)
+  
+  // Informations pratiques
+  type         JobType
+  location     String
+  salary       String?
+  experience   String   // Niveau d'expérience requis
+  department   String   // Département/équipe
+  
+  // Statut et visibilité
+  published    Boolean  @default(false)
+  featured     Boolean  @default(false)
+  urgent       Boolean  @default(false)
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  // Dates
+  publishedAt  DateTime?
+  expiresAt    DateTime? // Date d'expiration de l'offre
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("job_offers")
+}
+
 // Modèle pour les consentements RGPD
 model DataProcessingConsent {
   id          String   @id @default(cuid())
@@ -294,4 +324,12 @@ enum AuthEventType {
   SUSPICIOUS_ACTIVITY
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
+}
+
+enum JobType {
+  CDI
+  CDD
+  STAGE
+  FREELANCE
+  ALTERNANCE
 }
