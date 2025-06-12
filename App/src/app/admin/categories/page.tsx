@@ -90,8 +90,8 @@ function CategoriesList({ categories }: { categories: Category[] }) {
   )
 }
 
-// Page principale (composant serveur)
-export default async function CategoriesPage() {
+// Composant serveur pour les données
+async function CategoriesData() {
   const categories = await prisma.category.findMany({
     include: {
       _count: {
@@ -102,7 +102,11 @@ export default async function CategoriesPage() {
       name: 'asc'
     }
   })
+  return <CategoriesList categories={categories} />
+}
 
+// Page principale
+export default function CategoriesPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -125,7 +129,7 @@ export default async function CategoriesPage() {
           </div>
 
           <div className="mt-8">
-            <CategoriesList categories={categories} />
+            <CategoriesData />
           </div>
         </div>
       </div>
