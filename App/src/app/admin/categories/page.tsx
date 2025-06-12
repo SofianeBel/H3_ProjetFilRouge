@@ -1,6 +1,3 @@
-'use client'
-
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import CategoriesList from './CategoriesList'
@@ -44,16 +41,7 @@ export default function CategoriesPage() {
           </div>
 
           <div className="mt-8">
-            <Suspense
-              fallback={
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-                  <p className="mt-4 text-gray-500">Chargement...</p>
-                </div>
-              }
-            >
-              <CategoriesData />
-            </Suspense>
+            <CategoriesData />
           </div>
         </div>
       </div>
