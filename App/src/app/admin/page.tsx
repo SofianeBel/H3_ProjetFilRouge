@@ -20,7 +20,7 @@ async function getAdminStats() {
     // Statistiques des articles de blog  
     const totalPosts = await prisma.blogPost.count()
     const publishedPosts = await prisma.blogPost.count({
-      where: { published: true }
+      where: { published: 1 }
     })
 
     // Statistiques des catégories

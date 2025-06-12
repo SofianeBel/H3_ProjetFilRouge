@@ -18,7 +18,6 @@
     "lucide-react": "^0.513.0",
     "next": "15.3.3",
     "next-auth": "^4.24.11",
-    "prisma": "^6.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^4.5.2",
@@ -34,6 +33,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "prisma": "^6.9.0",
     "tailwindcss": "^4.1.8",
     "typescript": "^5"
   }
