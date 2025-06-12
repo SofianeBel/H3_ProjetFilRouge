@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     const posts = await prisma.blogPost.findMany({
-      where,
+        where,
       select: {
         id: true,
         title: true,
