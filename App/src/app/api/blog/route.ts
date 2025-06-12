@@ -58,12 +58,17 @@ export async function GET(request: NextRequest) {
     }
 
     const posts = await prisma.blogPost.findMany({
-      where,
+      where: {
+        ...where,
+        published: where.published !== undefined ? (where.published ? 1 : 0) : undefined,
+        featured: where.featured !== undefined ? (where.featured ? 1 : 0) : undefined
+      },
       select: {
         id: true,
         title: true,
         excerpt: true,
         published: true,
+        featured: true,
         createdAt: true,
         category: {
           select: {
@@ -93,6 +98,7 @@ export async function GET(request: NextRequest) {
     const formattedPosts = posts.map(post => ({
       ...post,
       published: toBoolean(post.published),
+      featured: toBoolean(post.featured),
       createdAt: new Date(post.createdAt),
       category: post.category ? {
         ...post.category,
