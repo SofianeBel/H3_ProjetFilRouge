@@ -123,7 +123,14 @@ export async function DELETE(request: NextRequest) {
       }
     })
 
-    if (category?._count.posts > 0) {
+    if (!category) {
+      return NextResponse.json(
+        { error: "Catégorie non trouvée" },
+        { status: 404 }
+      )
+    }
+
+    if (category._count?.posts > 0) {
       return NextResponse.json(
         { error: "Impossible de supprimer une catégorie contenant des articles" },
         { status: 400 }

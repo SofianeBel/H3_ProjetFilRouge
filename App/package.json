@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:reset": "npx prisma db push --force-reset",
+    "db:seed": "npx prisma db seed"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

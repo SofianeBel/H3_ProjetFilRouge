@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const search = searchParams.get('search')
 
-    // Construire la clause where
+    // Construction des filtres pour Prisma
     const where: Prisma.BlogPostWhereInput = {}
     
     if (categoryId) {
@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
         title: true,
         excerpt: true,
         published: true,
+        featured: true,
         createdAt: true,
         category: {
           select: {
@@ -93,6 +94,7 @@ export async function GET(request: NextRequest) {
     const formattedPosts = posts.map(post => ({
       ...post,
       published: toBoolean(post.published),
+      featured: toBoolean(post.featured),
       createdAt: new Date(post.createdAt),
       category: post.category ? {
         ...post.category,
@@ -211,11 +213,7 @@ export async function DELETE(request: NextRequest) {
 
     // Vérifier d'abord si l'article existe
     const post = await prisma.blogPost.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        author: true
-      }
+      where: { id }
     })
 
     if (!post) {
@@ -227,11 +225,7 @@ export async function DELETE(request: NextRequest) {
 
     // Supprimer l'article
     await prisma.blogPost.delete({
-      where: { id },
-      include: {
-        category: true,
-        author: true
-      }
+      where: { id }
     })
 
     return NextResponse.json({ 
