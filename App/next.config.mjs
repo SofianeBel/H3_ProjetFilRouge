@@ -12,7 +12,6 @@ const nextConfig = {
   // Configuration des source maps
   productionBrowserSourceMaps: true,
   // Optimisations de build
-  swcMinify: true,
   poweredByHeader: false,
   reactStrictMode: true
 };
