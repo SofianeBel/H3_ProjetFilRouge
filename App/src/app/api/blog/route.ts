@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const search = searchParams.get('search')
 
-    // Construire la clause where
+    // Construction des filtres pour Prisma
     const where: Prisma.BlogPostWhereInput = {}
     
     if (categoryId) {
