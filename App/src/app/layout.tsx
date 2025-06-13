@@ -4,6 +4,7 @@ import "./globals.css";
 import "../styles/glassmorphism.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { MotionProvider } from "@/components/providers/motion-provider";
+import { CartProvider } from "@/context/CartContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -76,9 +77,11 @@ export default function RootLayout({
       >
         <MotionProvider>
           <AuthProvider>
-            <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-              {children}
-            </div>
+            <CartProvider>
+              <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+                {children}
+              </div>
+            </CartProvider>
           </AuthProvider>
         </MotionProvider>
       </body>

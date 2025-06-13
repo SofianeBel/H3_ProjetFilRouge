@@ -53,13 +53,18 @@ export default function UnifiedContactPage() {
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<'message' | 'booking'>('booking')
 
-  // Je récupère le mode depuis l'URL (pour la redirection depuis /contact)
+  // Je récupère le mode et le service depuis l'URL
   useEffect(() => {
     const mode = searchParams.get('mode')
     if (mode === 'message') {
       setActiveTab('message')
+    } else if (mode === 'booking') {
+      setActiveTab('booking')
     }
   }, [searchParams])
+
+  // Je récupère le service pour le pré-remplissage
+  const serviceParam = searchParams.get('service')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -166,9 +171,9 @@ export default function UnifiedContactPage() {
               </h2>
               
               {activeTab === 'booking' ? (
-                <BookingForm />
+                <BookingForm defaultService={serviceParam || undefined} />
               ) : (
-                <ContactForm className="w-full max-w-none" />
+                <ContactForm className="w-full max-w-none" defaultService={serviceParam || undefined} />
               )}
             </div>
           </div>

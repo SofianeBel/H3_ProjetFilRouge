@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { Heart, Shield, Lock, Activity, CheckCircle, Award, Users } from "lucide-react"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Solutions cybersécurité secteur santé | Cyna",
@@ -96,12 +97,18 @@ export default function SolutionsSantePage() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="btn-primary">
+                <Link 
+                  href="/booking?mode=booking&service=Santé"
+                  className="btn-primary"
+                >
                   Solutions santé
-                </button>
-                <button className="btn-secondary">
+                </Link>
+                <Link 
+                  href="/booking?mode=message&service=Santé"
+                  className="btn-secondary"
+                >
                   Certification HDS
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -281,12 +288,12 @@ export default function SolutionsSantePage() {
             avec une expertise reconnue en cybersécurité.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-red-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors">
+            <Link href="/booking" className="bg-white text-red-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors">
               Audit HDS gratuit
-            </button>
-            <button className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-red-600 transition-colors">
+            </Link>
+            <Link href="/booking" className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-red-600 transition-colors">
               Nos références santé
-            </button>
+            </Link>
           </div>
         </div>
       </section>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Shield, Search, FileText, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
+import { AddToCartButton } from "@/components/ui/add-to-cart-button"
 
 /**
  * Page des services d'audit de sécurité
@@ -236,12 +237,13 @@ export default function AuditPage() {
                   <span>Plan d&apos;action prioritaire</span>
                 </li>
               </ul>
-              <Link 
-                href="/contact"
-                className="block w-full text-center px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+              <AddToCartButton
+                serviceSlug="audit"
+                planName="PME"
+                className="bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
               >
-                Demander un devis
-              </Link>
+                Ajouter au panier
+              </AddToCartButton>
             </div>
 
             {/* ETI */}
@@ -274,12 +276,13 @@ export default function AuditPage() {
                   <span>Suivi post-audit (3 mois)</span>
                 </li>
               </ul>
-              <Link 
-                href="/contact"
-                className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              <AddToCartButton
+                serviceSlug="audit"
+                planName="ETI"
+                className="bg-blue-600 text-white hover:bg-blue-700"
               >
-                Demander un devis
-              </Link>
+                Ajouter au panier
+              </AddToCartButton>
             </div>
 
             {/* Groupe */}
@@ -308,7 +311,7 @@ export default function AuditPage() {
                 </li>
               </ul>
               <Link 
-                href="/contact"
+                href="/booking?mode=booking&service=Audit"
                 className="block w-full text-center px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
               >
                 Nous contacter
@@ -330,7 +333,7 @@ export default function AuditPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/contact"
+              href="/booking?mode=booking&service=Audit"
               className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-900 bg-white hover:bg-gray-100 transition-colors"
             >
               <Clock className="mr-2 h-5 w-5" />

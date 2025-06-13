@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Eye, Shield, Clock, AlertTriangle, CheckCircle, Phone, Mail } from "lucide-react"
+import { AddToCartButton } from "@/components/ui/add-to-cart-button"
 
 /**
  * Page détaillée du service SOC (Security Operations Center)
@@ -28,7 +29,7 @@ export default function SOCPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link 
-              href="/contact?service=SOC"
+              href="/booking?mode=booking&service=SOC"
               className="btn-primary bg-white text-blue-600 hover:bg-gray-100"
             >
               Demander un devis
@@ -265,12 +266,22 @@ export default function SOCPage() {
                     </li>
                   ))}
                 </ul>
-                <Link 
-                  href={`/contact?service=SOC&plan=${plan.name}`}
-                  className={`btn-primary w-full ${plan.popular ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                >
-                  Choisir ce plan
-                </Link>
+                {plan.name === "Enterprise" ? (
+                  <Link 
+                    href={`/booking?mode=booking&service=SOC&plan=${plan.name}`}
+                    className="btn-primary w-full bg-gray-700 hover:bg-gray-600"
+                  >
+                    Demander un devis
+                  </Link>
+                ) : (
+                  <AddToCartButton
+                    serviceSlug="soc"
+                    planName={plan.name}
+                    className={plan.popular ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}
+                  >
+                    Choisir ce plan
+                  </AddToCartButton>
+                )}
               </div>
             ))}
           </div>
@@ -288,7 +299,7 @@ export default function SOCPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/contact?service=SOC"
+              href="/booking?mode=booking&service=SOC"
               className="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
             >
               <Mail className="mr-2 h-5 w-5" />

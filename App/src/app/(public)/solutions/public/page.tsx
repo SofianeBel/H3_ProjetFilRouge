@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { Shield, Users, Lock, FileCheck, CheckCircle, Award, MapPin } from "lucide-react"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Solutions cybersécurité secteur public | Cyna",
@@ -62,12 +63,18 @@ export default function SolutionsPublicPage() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="btn-primary">
+                <Link 
+                  href="/booking?mode=booking&service=Public"
+                  className="btn-primary"
+                >
                   Découvrir nos solutions
-                </button>
-                <button className="btn-secondary">
+                </Link>
+                <Link 
+                  href="/booking?mode=message&service=Public"
+                  className="btn-secondary"
+                >
                   Conformité ANSSI
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -201,12 +208,18 @@ export default function SolutionsPublicPage() {
             aux exigences du secteur public.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-green-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors">
-              Audit de conformité
-            </button>
-            <button className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-green-600 transition-colors">
-              Nos références publiques
-            </button>
+                          <Link 
+                href="/booking?mode=booking&service=Audit"
+                className="bg-white text-green-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Audit de conformité
+              </Link>
+              <Link 
+                href="/booking?mode=message&service=Audit"
+                className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-green-600 transition-colors"
+              >
+                Nos références publiques
+              </Link>
           </div>
         </div>
       </section>

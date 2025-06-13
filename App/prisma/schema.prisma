@@ -9,11 +9,10 @@ generator client {
   previewFeatures = ["driverAdapters"]
 }
 
-// Configuration pour Vercel Postgres (utilise Neon sous le capot)
+// Configuration pour développement SQLite
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // Modèle pour les demandes de contact
@@ -153,9 +152,11 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(CLIENT)
+  active        Boolean   @default(true)  // Soft-delete : true = actif, false = désactivé
   accounts      Account[]
   sessions      Session[]
   blogPosts     BlogPost[]
+  orders        Order[]   // Relation vers les commandes
   
   // Relations RGPD
   consentRecords   DataProcessingConsent[]
@@ -332,4 +333,55 @@ enum JobType {
   STAGE
   FREELANCE
   ALTERNANCE
+}
+
+// Enum pour définir le type d'achat des services
+enum PurchaseType {
+  PRE_CONFIGURED  // Service avec prix fixe, achetable directement
+  QUOTE          // Service sur devis, passe par le flow Booking
+}
+
+// Modèle pour les services de cybersécurité
+model Service {
+  id              String       @id @default(cuid())
+  name            String       // Nom du service (ex: "Audit de Sécurité")
+  slug            String       @unique // Slug pour l'URL (ex: "audit")
+  description     String?      // Description courte
+  longDescription String?      // Description détaillée (markdown)
+  price           Int?         // Prix en centimes (null si QUOTE)
+  currency        String       @default("eur")
+  purchaseType    PurchaseType @default(QUOTE)
+  
+  // Intégration Stripe pour les services PRE_CONFIGURED
+  stripeProductId String?      // ID du produit Stripe
+  stripePriceId   String?      // ID du prix Stripe
+  
+  // Métadonnées
+  published       Boolean      @default(true)
+  featured        Boolean      @default(false)
+  category        String?      // Catégorie du service
+  icon            String?      // Nom de l'icône Lucide
+  color           String?      // Couleur du gradient (ex: "from-blue-500 to-purple-600")
+  
+  // Dates
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("services")
+}
+
+// Modèle pour les commandes Stripe
+model Order {
+  id                    String   @id @default(cuid())
+  stripePaymentIntentId String   @unique  // ID du PaymentIntent Stripe
+  userId                String?             // FK vers User (optionnel)
+  user                  User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount                Int                 // Montant en centimes
+  currency              String    @default("eur")
+  status                String              // paid, refunded, pending, failed, etc.
+  metadata              Json?               // Métadonnées extensibles
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("orders")
 }

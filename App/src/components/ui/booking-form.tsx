@@ -22,20 +22,21 @@ interface BookingFormData {
 interface BookingFormProps {
   onSuccess?: () => void
   className?: string
+  defaultService?: string
 }
 
 /**
  * Composant de formulaire de réservation avec créneau horaire
  * Envoie les données vers l'API /api/booking
  */
-export function BookingForm({ onSuccess, className }: BookingFormProps) {
+export function BookingForm({ onSuccess, className, defaultService }: BookingFormProps) {
   // État du formulaire et de l'interface
   const [formData, setFormData] = useState<BookingFormData>({
     name: '',
     email: '',
     company: '',
     phone: '',
-    service: '',
+    service: defaultService || '',
     preferredDate: '',
     message: ''
   })
@@ -83,7 +84,7 @@ export function BookingForm({ onSuccess, className }: BookingFormProps) {
           email: '',
           company: '',
           phone: '',
-          service: '',
+          service: defaultService || '',
           preferredDate: '',
           message: ''
         })
@@ -212,6 +213,11 @@ export function BookingForm({ onSuccess, className }: BookingFormProps) {
             <option value="Audit">Audit de Sécurité</option>
             <option value="Pentest">Test de Pénétration</option>
             <option value="CERT">Équipe de Réponse aux Incidents (CERT)</option>
+            <option value="MSP">Partenariat MSP</option>
+            <option value="Formation">Formation Cybersécurité</option>
+            <option value="Compliance">Mise en Conformité</option>
+            <option value="Incident">Gestion d'Incident</option>
+            <option value="Autre">Autre service</option>
           </select>
         </div>
 

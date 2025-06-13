@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useScroll } from "@/hooks/use-scroll"
 import { Menu, X, User, LogOut, Settings } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
+import { CartButton, CartButtonCompact } from "@/components/ui/cart-button"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -29,9 +30,11 @@ export function Header() {
     { name: "Services", href: "/services" },
     { name: "Solutions", href: "/solutions" },
     { name: "Blog", href: "/blog" },
-    { name: "Réserver", href: "/booking" },
-    { name: "Contact", href: "/contact" }
+    { name: "Réserver", href: "/booking" }
   ]
+
+  // Détermine si on doit afficher le panier (clients uniquement, pas les admins)
+  const showCart = !isAuthenticated || user?.role === 'CLIENT'
 
   // Classes CSS dynamiques selon l'état de scroll - avec arrondis conditionnels
   const getHeaderClasses = () => {
@@ -112,6 +115,9 @@ export function Header() {
             ) : isAuthenticated && user ? (
               // Utilisateur connecté
               <div className="hidden md:flex items-center gap-3">
+                {/* Bouton panier pour les clients */}
+                {showCart && <CartButton isScrolled={isScrolled} />}
+                
                 {/* Menu utilisateur */}
                 <div className="relative">
                   <button
@@ -173,6 +179,9 @@ export function Header() {
             ) : (
               // Utilisateur non connecté
               <div className="hidden md:flex items-center gap-3">
+                {/* Bouton panier pour les visiteurs (considérés comme clients potentiels) */}
+                {showCart && <CartButton isScrolled={isScrolled} />}
+                
                 <Link
                   href="/auth/login"
                   className={cn(
@@ -211,6 +220,13 @@ export function Header() {
               >
                 Nous contacter
               </Link>
+            )}
+
+            {/* Bouton panier mobile (version compacte) */}
+            {showCart && (
+              <div className="md:hidden">
+                <CartButtonCompact isScrolled={isScrolled} />
+              </div>
             )}
 
             {/* Bouton menu mobile */}

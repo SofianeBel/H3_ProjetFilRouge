@@ -16,19 +16,20 @@ interface ContactFormData {
 interface ContactFormProps {
   className?: string
   onSuccess?: () => void
+  defaultService?: string
 }
 
 /**
  * Composant de formulaire de contact simple
  * Envoie les données vers l'API /api/contact
  */
-export function ContactForm({ className, onSuccess }: ContactFormProps) {
+export function ContactForm({ className, onSuccess, defaultService }: ContactFormProps) {
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     company: '',
     phone: '',
-    service: undefined,
+    service: (defaultService as 'SOC' | 'Audit' | 'Pentest' | 'CERT' | 'Autre') || undefined,
     message: ''
   })
   
@@ -72,7 +73,7 @@ export function ContactForm({ className, onSuccess }: ContactFormProps) {
           email: '',
           company: '',
           phone: '',
-          service: undefined,
+          service: (defaultService as 'SOC' | 'Audit' | 'Pentest' | 'CERT' | 'Autre') || undefined,
           message: ''
         })
         onSuccess?.()
@@ -175,17 +176,23 @@ export function ContactForm({ className, onSuccess }: ContactFormProps) {
             Service d&apos;intérêt
           </label>
           <select
-            id="contact-service"
+            id="service"
+            name="service"
+            title="Sélection du service"
             value={formData.service || ''}
             onChange={(e) => handleChange('service', e.target.value)}
             className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">Sélectionnez un service</option>
-            <option value="SOC">SOC managé</option>
-            <option value="Audit">Audit de sécurité</option>
-            <option value="Pentest">Test de pénétration</option>
-            <option value="CERT">CERT / Réponse incident</option>
-            <option value="Autre">Autre</option>
+            <option value="">Sélectionnez un service (optionnel)</option>
+            <option value="SOC">Centre Opérationnel de Sécurité (SOC)</option>
+            <option value="Audit">Audit de Sécurité</option>
+            <option value="Pentest">Test de Pénétration</option>
+            <option value="CERT">Équipe de Réponse aux Incidents (CERT)</option>
+            <option value="MSP">Partenariat MSP</option>
+            <option value="Formation">Formation Cybersécurité</option>
+            <option value="Compliance">Mise en Conformité</option>
+            <option value="Incident">Gestion d'Incident</option>
+            <option value="Autre">Autre service</option>
           </select>
         </div>
 

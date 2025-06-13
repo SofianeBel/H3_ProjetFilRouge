@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { Building2, Shield, Clock, TrendingUp, CheckCircle, Users, Euro, Zap } from "lucide-react"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Solutions cybersécurité PME | Cyna",
@@ -329,12 +330,18 @@ export default function SolutionsPMEPage() {
             votre entreprise avec nos solutions adaptées aux PME.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-blue-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors">
+            <Link 
+              href="/booking?mode=booking&service=Audit"
+              className="bg-white text-blue-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors"
+            >
               Audit gratuit PME
-            </button>
-            <button className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors">
-              Parler à un expert
-            </button>
+            </Link>
+                          <Link 
+                href="/booking?mode=message&service=Audit"
+                className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors"
+              >
+                Parler à un expert
+              </Link>
           </div>
         </div>
       </section>

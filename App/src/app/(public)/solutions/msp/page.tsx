@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { Server, Shield, Package, Users, TrendingUp, CheckCircle, HandHeart, Briefcase } from "lucide-react"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Solutions cybersécurité MSP | Cyna",
@@ -33,13 +34,19 @@ export default function SolutionsMSPPage() {
                 Proposez une cybersécurité de haute qualité à vos clients PME sans investissement.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button className="btn-primary">
-                  Devenir partenaire
-                </button>
-                <button className="btn-secondary">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                             <Link 
+               href="/booking?mode=booking&service=MSP"
+               className="bg-white text-[#A67FFB] font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors"
+             >
+               Devenir partenaire MSP
+             </Link>
+                <Link 
+                  href="/booking?mode=message&service=MSP"
+                  className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-[#A67FFB] transition-colors"
+                >
                   Kit commercial
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -160,9 +167,20 @@ export default function SolutionsMSPPage() {
             Découvrez comment notre partenariat peut vous aider à développer 
             rapidement vos services de cybersécurité.
           </p>
-          <button className="bg-white text-[#A67FFB] font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors">
-            Devenir partenaire MSP
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              href="/booking?mode=booking&service=MSP"
+              className="bg-white text-[#A67FFB] font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Devenir partenaire
+            </Link>
+            <Link 
+              href="/booking?mode=message&service=MSP"
+              className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-[#A67FFB] transition-colors"
+            >
+              Kit commercial
+            </Link>
+          </div>
         </div>
       </section>
     </div>
