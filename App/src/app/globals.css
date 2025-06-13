@@ -404,3 +404,25 @@ body {
   padding: clamp(4rem, 8vw, 8rem) 0;
 }
 
+/* ===== CONTAINER PERSONNALISÉ CYNA ===== */
+
+/* Container principal pour limiter la largeur du contenu comme Cursor */
+.container-cyna {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Padding responsive pour différentes tailles d'écran */
+@media (min-width: 640px) {
+  .container-cyna {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-cyna {
+    padding: 0 2rem;
+  }
+}
+

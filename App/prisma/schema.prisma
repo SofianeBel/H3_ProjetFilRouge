@@ -153,6 +153,7 @@ model User {
   image         String?
   role          UserRole  @default(CLIENT)
   active        Boolean   @default(true)  // Soft-delete : true = actif, false = désactivé
+  deletedAt     DateTime? // Date de suppression pour purge CRON
   accounts      Account[]
   sessions      Session[]
   blogPosts     BlogPost[]
@@ -239,6 +240,7 @@ model DataProcessingConsent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@unique([userId, consentType])
   @@index([userId, consentType])
   @@map("data_processing_consents")
 }
@@ -325,6 +327,8 @@ enum AuthEventType {
   SUSPICIOUS_ACTIVITY
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
+  PROFILE_UPDATE
+  ACCOUNT_DELETED
 }
 
 enum JobType {

@@ -38,18 +38,20 @@ export function Header() {
 
   // Classes CSS dynamiques selon l'état de scroll - avec arrondis conditionnels
   const getHeaderClasses = () => {
-    const baseClasses = "fixed top-0 left-0 right-0 z-50"
+    const baseClasses = "fixed top-0 z-50"
     
     if (isScrolled) {
-      // Mode floating capsule glassmorphism avec arrondis
+      // Mode floating capsule glassmorphism centrée avec largeur limitée
       return cn(
         baseClasses,
+        "left-1/2 -translate-x-1/2 w-full max-w-[1280px]",
         "glass-navbar-premium glass-transition-ultra"
       )
     } else {
-      // Mode glassmorphism cohérent dès le début pour transition fluide
+      // Mode glassmorphism plein écran cohérent pour transition fluide
       return cn(
         baseClasses,
+        "left-0 right-0",
         "glass-navbar-premium glass-transition"
       )
     }
@@ -59,10 +61,7 @@ export function Header() {
     <motion.header
       className={getHeaderClasses()}
       animate={{
-        width: isScrolled ? "calc(100% - 32px)" : "100%",
         marginTop: isScrolled ? "12px" : "0px",
-        marginLeft: isScrolled ? "16px" : "0px",
-        marginRight: isScrolled ? "16px" : "0px",
         borderRadius: isScrolled ? "24px" : "0px",
       }}
       transition={{
@@ -151,6 +150,15 @@ export function Header() {
                           </p>
                         </div>
                         <div className="py-1">
+                          {/* Lien Mon profil */}
+                          <Link
+                            href="/profile"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100/70 transition-colors"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <User className="h-4 w-4" />
+                            Mon profil
+                          </Link>
                           {/* Lien Admin si utilisateur est admin */}
                           {user.role === 'ADMIN' && (
                             <Link
@@ -315,6 +323,21 @@ export function Header() {
                       </div>
                     </div>
                     
+                    {/* Lien Mon profil mobile */}
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-2 transition-colors duration-300 py-2 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2 rounded-md",
+                        isScrolled 
+                          ? "text-gray-700 hover:text-[#6366F1]" 
+                          : "text-gray-900 hover:text-[#A67FFB]"
+                      )}
+                    >
+                      <User className="h-4 w-4" />
+                      Mon profil
+                    </Link>
+
                     {/* Lien admin mobile (si admin) */}
                     {user.role === 'ADMIN' && (
                       <Link

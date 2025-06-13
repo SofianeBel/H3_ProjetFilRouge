@@ -12,7 +12,7 @@ export default function AuditPage() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 text-white py-24">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative container-cyna">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Audit de Sécurité IT
@@ -40,7 +40,7 @@ export default function AuditPage() {
 
       {/* Types d'audits */}
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container-cyna">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Types d&apos;audits proposés
@@ -107,7 +107,7 @@ export default function AuditPage() {
 
       {/* Méthodologie */}
       <section id="methodologie" className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container-cyna">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Notre méthodologie
@@ -201,7 +201,7 @@ export default function AuditPage() {
 
       {/* Tarification */}
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container-cyna">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Tarification transparente
