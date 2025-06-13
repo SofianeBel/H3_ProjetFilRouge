@@ -363,11 +363,54 @@ model Service {
   icon            String?      // Nom de l'icône Lucide
   color           String?      // Couleur du gradient (ex: "from-blue-500 to-purple-600")
   
+  // Relations
+  plans           ServicePlan[] // Plans disponibles pour ce service
+  
   // Dates
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
   @@map("services")
+}
+
+// Modèle pour les plans/forfaits de services
+model ServicePlan {
+  id              String       @id @default(cuid())
+  serviceId       String       // FK vers Service
+  service         Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  // Informations du plan
+  name            String       // Nom du plan (ex: "PME", "ETI", "Enterprise")
+  slug            String       // Slug du plan (ex: "pme", "eti", "enterprise")
+  description     String?      // Description du plan
+  features        Json?        // Fonctionnalités spécifiques (JSON array)
+  
+  // Tarification
+  price           Int          // Prix en centimes
+  currency        String       @default("eur")
+  originalPrice   Int?         // Prix barré (promo)
+  
+  // Intégration Stripe
+  stripeProductId String?      // ID du produit Stripe pour ce plan
+  stripePriceId   String?      // ID du prix Stripe pour ce plan
+  
+  // Métadonnées
+  published       Boolean      @default(true)
+  featured        Boolean      @default(false) // Plan mis en avant
+  popular         Boolean      @default(false) // Badge "Populaire"
+  recommended     Boolean      @default(false) // Badge "Recommandé"
+  
+  // Contraintes et limites (optionnel)
+  maxUsers        Int?         // Nombre max d'utilisateurs
+  maxDevices      Int?         // Nombre max d'appareils
+  duration        String?      // Durée (ex: "1 mois", "1 an")
+  
+  // Dates
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([serviceId, slug]) // Un slug unique par service
+  @@map("service_plans")
 }
 
 // Modèle pour les commandes Stripe

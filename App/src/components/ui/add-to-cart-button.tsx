@@ -1,67 +1,40 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
 import { ShoppingCart, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 /**
- * Fonction utilitaire pour obtenir le prix d'un plan
- * Retourne le prix en centimes
+ * Interface pour un plan de service
  */
-const getPriceForPlan = (serviceSlug: string, planName: string): number => {
-  // Mapping des prix par service et plan (en centimes)
-  const prices: Record<string, Record<string, number>> = {
-    'soc': {
-      'pme': 250000, // 2500€
-      'entreprise': 500000, // 5000€
-      'enterprise': 0 // Sur devis
-    },
-    'pentest': {
-      'basique': 150000, // 1500€
-      'avance': 300000, // 3000€
-      'premium': 500000 // 5000€
-    },
-    'audit': {
-      'pme': 250000, // 2500€
-      'eti': 590000, // 5900€
-      'groupe': 0 // Sur devis
-    },
-    'formation': {
-      'sensibilisation': 50000, // 500€
-      'technique': 150000, // 1500€
-      'expert': 300000 // 3000€
-    },
-    'compliance': {
-      'evaluation': 200000, // 2000€
-      'mise-en-conformite': 500000, // 5000€
-      'accompagnement': 800000 // 8000€
-    },
-    'incident': {
-      'investigation': 300000, // 3000€
-      'remediation': 500000, // 5000€
-      'forensic': 800000 // 8000€
-    },
-    'cert': {
-      'iso27001': 1000000, // 10000€
-      'iso27005': 800000, // 8000€
-      'custom': 0 // Sur devis
+interface ServicePlan {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  price: number
+  currency: string
+  features?: string[]
+  popular?: boolean
+  recommended?: boolean
+}
+
+/**
+ * Interface pour la réponse API des plans
+ */
+interface PlansResponse {
+  success: boolean
+  message?: string
+  data?: {
+    service: {
+      id: string
+      name: string
+      slug: string
+      description?: string
     }
+    plans: ServicePlan[]
   }
-
-  const servicePrices = prices[serviceSlug.toLowerCase()]
-  if (!servicePrices) {
-    console.warn(`Prix non trouvé pour le service: ${serviceSlug}`)
-    return 0
-  }
-
-  const price = servicePrices[planName.toLowerCase()]
-  if (price === undefined) {
-    console.warn(`Prix non trouvé pour le plan: ${planName} du service: ${serviceSlug}`)
-    return 0
-  }
-
-  return price
 }
 
 /**
@@ -84,22 +57,59 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   const { addItem } = useCart()
   const [isLoading, setIsLoading] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
+  const [plans, setPlans] = useState<ServicePlan[]>([])
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true)
+
+  // Récupération des plans au montage du composant
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setIsLoadingPlans(true)
+        const response = await fetch(`/api/services/${serviceSlug}/plans`)
+        const data: PlansResponse = await response.json()
+        
+        if (data.success && data.data) {
+          setPlans(data.data.plans)
+        } else {
+          console.error('Erreur lors du chargement des plans:', data.message)
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des plans:', error)
+      } finally {
+        setIsLoadingPlans(false)
+      }
+    }
+
+    fetchPlans()
+  }, [serviceSlug])
+
+  // Fonction pour trouver le plan correspondant
+  const findPlan = (): ServicePlan | null => {
+    return plans.find(plan => 
+      plan.slug.toLowerCase() === planName.toLowerCase() ||
+      plan.name.toLowerCase() === planName.toLowerCase()
+    ) || null
+  }
 
   // Fonction pour gérer l'ajout au panier
   const handleAddToCart = async () => {
+    const plan = findPlan()
+    
+    if (!plan) {
+      console.error(`Plan "${planName}" non trouvé pour le service "${serviceSlug}"`)
+      return
+    }
+
     try {
       setIsLoading(true)
       
-      // On crée un serviceId unique basé sur le service et le plan
-      const serviceId = `${serviceSlug}-${planName.toLowerCase()}`
-      
-      // On ajoute le service au panier avec le plan sélectionné
+      // On utilise maintenant l'ID réel du plan
       addItem({
-        serviceId,
-        serviceName: `${serviceSlug.toUpperCase()} - ${planName}`,
+        serviceId: plan.id, // ID réel du plan en BDD
+        serviceName: `${serviceSlug.toUpperCase()} - ${plan.name}`,
         serviceSlug,
-        price: getPriceForPlan(serviceSlug, planName), // Prix en centimes
-        currency: 'EUR'
+        price: plan.price, // Prix en centimes depuis la BDD
+        currency: plan.currency.toUpperCase()
       })
       
       // Feedback visuel de succès
@@ -116,6 +126,39 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Si les plans sont en cours de chargement
+  if (isLoadingPlans) {
+    return (
+      <button
+        disabled
+        className={cn(
+          "btn-primary w-full flex items-center justify-center gap-2 opacity-75 cursor-not-allowed",
+          className
+        )}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Chargement...
+      </button>
+    )
+  }
+
+  // Si le plan n'existe pas
+  const plan = findPlan()
+  if (!plan) {
+    return (
+      <button
+        disabled
+        className={cn(
+          "btn-primary w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed",
+          className
+        )}
+      >
+        <ShoppingCart className="h-4 w-4" />
+        Plan indisponible
+      </button>
+    )
   }
 
   return (

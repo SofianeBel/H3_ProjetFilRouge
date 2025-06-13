@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 /**
  * GET /api/services/[slug]
- * Récupère un service par son slug
+ * Récupère un service par son slug avec ses plans
  */
 export async function GET(
   request: NextRequest,
@@ -12,11 +12,23 @@ export async function GET(
   try {
     const { slug } = params
 
-    // Récupération du service par slug
+    // Récupération du service par slug avec ses plans
     const service = await prisma.service.findUnique({
       where: {
         slug: slug,
         published: true
+      },
+      include: {
+        plans: {
+          where: {
+            published: true
+          },
+          orderBy: [
+            { recommended: 'desc' },
+            { popular: 'desc' },
+            { price: 'asc' }
+          ]
+        }
       }
     })
 

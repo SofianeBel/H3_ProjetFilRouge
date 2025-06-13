@@ -39,25 +39,49 @@ export async function POST(request: NextRequest) {
     
     const { cart, successUrl, cancelUrl } = validatedData
 
-    // Vérification que tous les services existent et sont PRE_CONFIGURED
-    const serviceIds = cart.map(item => item.serviceId)
-    const services = await prisma.service.findMany({
+    // Vérification que tous les plans existent et sont disponibles
+    const planIds = cart.map(item => item.serviceId) // serviceId est maintenant l'ID du plan
+    const plans = await prisma.servicePlan.findMany({
       where: {
-        id: { in: serviceIds },
-        published: true,
-        purchaseType: 'PRE_CONFIGURED'
+        id: { in: planIds },
+        published: true
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            purchaseType: true
+          }
+        }
       }
     })
 
-    // Vérification que tous les services du panier sont valides
-    if (services.length !== serviceIds.length) {
-      const foundIds = services.map(s => s.id)
-      const missingIds = serviceIds.filter(id => !foundIds.includes(id))
+    // Vérification que tous les plans du panier sont valides
+    if (plans.length !== planIds.length) {
+      const foundIds = plans.map(p => p.id)
+      const missingIds = planIds.filter(id => !foundIds.includes(id))
       
       return NextResponse.json(
         { 
           success: false, 
-          message: `Services non trouvés ou non disponibles à l'achat: ${missingIds.join(', ')}` 
+          message: `Plans non trouvés ou non disponibles à l'achat: ${missingIds.join(', ')}` 
+        },
+        { status: 400 }
+      )
+    }
+
+    // Vérification que tous les services associés sont PRE_CONFIGURED
+    const invalidServices = plans.filter(plan => plan.service.purchaseType !== 'PRE_CONFIGURED')
+    if (invalidServices.length > 0) {
+      const invalidNames = invalidServices.map(plan => `${plan.service.name} - ${plan.name}`)
+      
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: `Ces services ne sont pas disponibles à l'achat direct: ${invalidNames.join(', ')}` 
         },
         { status: 400 }
       )
@@ -65,12 +89,12 @@ export async function POST(request: NextRequest) {
 
     // Construction des line_items pour Stripe
     const lineItems = cart.map(item => {
-      const service = services.find(s => s.id === item.serviceId)!
+      const plan = plans.find(p => p.id === item.serviceId)!
       
-      // Si le service a un stripePriceId, on l'utilise
-      if (service.stripePriceId) {
+      // Si le plan a un stripePriceId, on l'utilise
+      if (plan.stripePriceId) {
         return {
-          price: service.stripePriceId,
+          price: plan.stripePriceId,
           quantity: item.quantity
         }
       }
@@ -81,10 +105,12 @@ export async function POST(request: NextRequest) {
           currency: item.currency,
           product_data: {
             name: item.serviceName,
-            description: service.description || undefined,
+            description: plan.description || plan.service.description || undefined,
             metadata: {
-              serviceId: item.serviceId,
-              serviceSlug: item.serviceSlug
+              planId: item.serviceId,
+              serviceSlug: item.serviceSlug,
+              serviceName: plan.service.name,
+              planName: plan.name
             }
           },
           unit_amount: item.price // Prix en centimes

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Plans</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .plan { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .popular { background-color: #e3f2fd; }
+        .recommended { background-color: #f3e5f5; }
+    </style>
+</head>
+<body>
+    <h1>Test API Plans</h1>
+    
+    <div>
+        <label for="serviceSlug">Service slug:</label>
+        <select id="serviceSlug">
+            <option value="audit">Audit</option>
+            <option value="soc">SOC</option>
+            <option value="pentest">Pentest</option>
+            <option value="formation">Formation</option>
+            <option value="incident">Incident</option>
+        </select>
+        <button onclick="loadPlans()">Charger les plans</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function loadPlans() {
+            const serviceSlug = document.getElementById('serviceSlug').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = 'Chargement...';
+                
+                const response = await fetch(`/api/services/${serviceSlug}/plans`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const service = data.data.service;
+                    const plans = data.data.plans;
+                    
+                    let html = `<h2>${service.name}</h2>`;
+                    html += `<p>${service.description}</p>`;
+                    html += `<h3>Plans disponibles (${plans.length})</h3>`;
+                    
+                    plans.forEach(plan => {
+                        const classes = [];
+                        if (plan.popular) classes.push('popular');
+                        if (plan.recommended) classes.push('recommended');
+                        
+                        html += `
+                            <div class="plan ${classes.join(' ')}">
+                                <h4>${plan.name} - ${(plan.price / 100).toFixed(2)}€</h4>
+                                <p><strong>ID:</strong> ${plan.id}</p>
+                                <p><strong>Slug:</strong> ${plan.slug}</p>
+                                <p>${plan.description || 'Pas de description'}</p>
+                                ${plan.popular ? '<span style="color: blue;">⭐ Populaire</span>' : ''}
+                                ${plan.recommended ? '<span style="color: purple;">✅ Recommandé</span>' : ''}
+                                <button onclick="testAddToCart('${plan.id}', '${plan.name}', ${plan.price}, '${plan.currency}')">
+                                    Tester ajout panier
+                                </button>
+                            </div>
+                        `;
+                    });
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">Erreur: ${data.message}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Erreur: ${error.message}</p>`;
+            }
+        }
+        
+        function testAddToCart(planId, planName, price, currency) {
+            console.log('Test ajout au panier:', {
+                serviceId: planId,
+                serviceName: planName,
+                price: price,
+                currency: currency
+            });
+            alert(`Test ajout au panier:\nPlan ID: ${planId}\nNom: ${planName}\nPrix: ${price/100}€`);
+        }
+        
+        // Charger les plans audit par défaut
+        loadPlans();
+    </script>
+</body>
+</html> 

@@ -401,11 +401,11 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
         - Corrélation d'événements multi-sources
         - Threat intelligence en temps réel
       `,
-      price: 299000, // 2990€ en centimes
+      price: null, // Prix variable selon les plans
       currency: 'eur',
-      purchaseType: 'PRE_CONFIGURED',
-      stripeProductId: null, // À remplir après création dans Stripe
-      stripePriceId: null,   // À remplir après création dans Stripe
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
+      stripeProductId: null,
+      stripePriceId: null,
       published: true,
       featured: true,
       category: 'Surveillance',
@@ -434,9 +434,9 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
         - Analyse des vulnérabilités
         - Évaluation des risques métier
       `,
-      price: null, // Sur devis
+      price: null, // Prix variable selon les plans
       currency: 'eur',
-      purchaseType: 'QUOTE',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
       stripeProductId: null,
       stripePriceId: null,
       published: true,
@@ -466,9 +466,9 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
         - Preuves de concept (PoC)
         - Plan de remédiation prioritisé
       `,
-      price: null, // Sur devis
+      price: null, // Prix variable selon les plans
       currency: 'eur',
-      purchaseType: 'QUOTE',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
       stripeProductId: null,
       stripePriceId: null,
       published: true,
@@ -476,38 +476,6 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
       category: 'Pentest',
       icon: 'AlertTriangle',
       color: 'from-red-500 to-orange-600'
-    },
-    {
-      name: 'CERT',
-      slug: 'cert',
-      description: 'Équipe spécialisée dans la réponse aux incidents de sécurité et la gestion de crise cyber.',
-      longDescription: `
-        ## CERT - Computer Emergency Response Team
-        
-        Notre équipe CERT intervient en urgence pour gérer les incidents de sécurité.
-        
-        ### Services d'urgence
-        - Réponse d'urgence 24h/7j
-        - Investigation forensique
-        - Containment et éradication
-        - Accompagnement post-incident
-        
-        ### Expertise
-        - Analystes certifiés en forensic
-        - Spécialistes en réponse à incident
-        - Coordination avec les autorités
-        - Communication de crise
-      `,
-      price: null, // Sur devis
-      currency: 'eur',
-      purchaseType: 'QUOTE',
-      stripeProductId: null,
-      stripePriceId: null,
-      published: true,
-      featured: false,
-      category: 'Incident Response',
-      icon: 'Users',
-      color: 'from-purple-500 to-pink-600'
     },
     {
       name: 'Formation Cybersécurité',
@@ -531,9 +499,9 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
         - Simulations d'attaques
         - Évaluations et certifications
       `,
-      price: 149000, // 1490€ en centimes
+      price: null, // Prix variable selon les plans
       currency: 'eur',
-      purchaseType: 'PRE_CONFIGURED',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
       stripeProductId: null,
       stripePriceId: null,
       published: true,
@@ -541,39 +509,6 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
       category: 'Formation',
       icon: 'GraduationCap',
       color: 'from-indigo-500 to-purple-600'
-    },
-    {
-      name: 'Conformité RGPD',
-      slug: 'compliance',
-      description: 'Accompagnement complet pour la mise en conformité RGPD et le maintien de votre conformité.',
-      longDescription: `
-        ## Conformité RGPD
-        
-        Accompagnement complet pour votre mise en conformité RGPD.
-        
-        ### Services inclus
-        - Audit de conformité RGPD
-        - Cartographie des traitements
-        - Rédaction des politiques et procédures
-        - Formation des équipes
-        - Accompagnement DPO
-        
-        ### Livrables
-        - Registre des traitements
-        - Analyses d'impact (AIPD)
-        - Procédures de gestion des droits
-        - Plan de mise en conformité
-      `,
-      price: null, // Sur devis
-      currency: 'eur',
-      purchaseType: 'QUOTE',
-      stripeProductId: null,
-      stripePriceId: null,
-      published: true,
-      featured: false,
-      category: 'Conformité',
-      icon: 'FileCheck',
-      color: 'from-emerald-500 to-teal-600'
     },
     {
       name: 'Gestion des Incidents',
@@ -597,9 +532,9 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
         - Coordination avec vos équipes
         - Reporting en temps réel
       `,
-      price: 199000, // 1990€ en centimes
+      price: null, // Prix variable selon les plans
       currency: 'eur',
-      purchaseType: 'PRE_CONFIGURED',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
       stripeProductId: null,
       stripePriceId: null,
       published: true,
@@ -607,17 +542,330 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
       category: 'Incident Response',
       icon: 'AlertCircle',
       color: 'from-orange-500 to-red-600'
+    },
+    // Services sur devis uniquement
+    {
+      name: 'CERT',
+      slug: 'cert',
+      description: 'Équipe spécialisée dans la réponse aux incidents de sécurité et la gestion de crise cyber.',
+      longDescription: `
+        ## CERT - Computer Emergency Response Team
+        
+        Notre équipe CERT intervient en urgence pour gérer les incidents de sécurité.
+        
+        ### Services d'urgence
+        - Réponse d'urgence 24h/7j
+        - Investigation forensique
+        - Containment et éradication
+        - Accompagnement post-incident
+        
+        ### Expertise
+        - Analystes certifiés en forensic
+        - Spécialistes en réponse à incident
+        - Coordination avec les autorités
+        - Communication de crise
+      `,
+      price: null,
+      currency: 'eur',
+      purchaseType: 'QUOTE', // Sur devis uniquement
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Incident Response',
+      icon: 'Users',
+      color: 'from-purple-500 to-pink-600'
+    },
+    {
+      name: 'Conformité RGPD',
+      slug: 'compliance',
+      description: 'Accompagnement complet pour la mise en conformité RGPD et le maintien de votre conformité.',
+      longDescription: `
+        ## Conformité RGPD
+        
+        Accompagnement complet pour votre mise en conformité RGPD.
+        
+        ### Services inclus
+        - Audit de conformité RGPD
+        - Cartographie des traitements
+        - Rédaction des politiques et procédures
+        - Formation des équipes
+        - Accompagnement DPO
+        
+        ### Livrables
+        - Registre des traitements
+        - Analyses d'impact (AIPD)
+        - Procédures de gestion des droits
+        - Plan de mise en conformité
+      `,
+      price: null,
+      currency: 'eur',
+      purchaseType: 'QUOTE', // Sur devis uniquement
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Conformité',
+      icon: 'FileCheck',
+      color: 'from-emerald-500 to-teal-600'
     }
   ]
 
   // Création des services
+  const createdServices: { [key: string]: any } = {}
   for (const serviceData of services) {
     const service = await prisma.service.upsert({
       where: { slug: serviceData.slug },
       update: serviceData,
       create: serviceData,
     })
+    createdServices[service.slug] = service
     console.log('✅ Service créé:', service.name)
+  }
+
+  // Création des plans pour chaque service
+  console.log('📋 Création des plans de services...')
+
+  const servicePlans = [
+    // Plans SOC
+    {
+      serviceSlug: 'soc',
+      name: 'PME',
+      slug: 'pme',
+      description: 'Surveillance SOC adaptée aux petites et moyennes entreprises',
+      features: JSON.stringify([
+        'Surveillance 24/7/365',
+        'Jusqu\'à 50 postes',
+        'Rapport mensuel',
+        'Support technique'
+      ]),
+      price: 250000, // 2500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'soc',
+      name: 'Entreprise',
+      slug: 'entreprise',
+      description: 'SOC complet pour les grandes entreprises',
+      features: JSON.stringify([
+        'Surveillance 24/7/365',
+        'Postes illimités',
+        'Rapport hebdomadaire',
+        'Support dédié',
+        'Threat intelligence'
+      ]),
+      price: 500000, // 5000€
+      popular: true,
+      recommended: false
+    },
+
+    // Plans Audit
+    {
+      serviceSlug: 'audit',
+      name: 'PME',
+      slug: 'pme',
+      description: 'Audit de sécurité pour PME (jusqu\'à 50 postes)',
+      features: JSON.stringify([
+        'Jusqu\'à 50 postes',
+        '2-3 jours sur site',
+        'Rapport exécutif',
+        'Plan d\'action prioritaire'
+      ]),
+      price: 250000, // 2500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'audit',
+      name: 'ETI',
+      slug: 'eti',
+      description: 'Audit de sécurité pour entreprises de taille intermédiaire',
+      features: JSON.stringify([
+        'Jusqu\'à 250 postes',
+        '5-7 jours sur site',
+        'Rapport détaillé',
+        'Suivi post-audit (3 mois)'
+      ]),
+      price: 590000, // 5900€
+      popular: true,
+      recommended: false
+    },
+
+    // Plans Pentest
+    {
+      serviceSlug: 'pentest',
+      name: 'Basique',
+      slug: 'basique',
+      description: 'Test de pénétration standard pour applications web',
+      features: JSON.stringify([
+        'Test application web',
+        'Rapport technique',
+        '1-2 applications',
+        'Support 30 jours'
+      ]),
+      price: 150000, // 1500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'pentest',
+      name: 'Avancé',
+      slug: 'avance',
+      description: 'Test complet infrastructure + applications',
+      features: JSON.stringify([
+        'Test infrastructure',
+        'Test applications',
+        'Rapport exécutif',
+        'Plan de remédiation',
+        'Support 60 jours'
+      ]),
+      price: 300000, // 3000€
+      popular: true,
+      recommended: false
+    },
+    {
+      serviceSlug: 'pentest',
+      name: 'Premium',
+      slug: 'premium',
+      description: 'Test avancé avec Red Team et social engineering',
+      features: JSON.stringify([
+        'Test infrastructure complet',
+        'Test applications',
+        'Red Team exercice',
+        'Social engineering',
+        'Rapport détaillé',
+        'Formation équipes',
+        'Support 90 jours'
+      ]),
+      price: 500000, // 5000€
+      popular: false,
+      recommended: false
+    },
+
+    // Plans Formation
+    {
+      serviceSlug: 'formation',
+      name: 'Sensibilisation',
+      slug: 'sensibilisation',
+      description: 'Formation de base en cybersécurité',
+      features: JSON.stringify([
+        'Module e-learning',
+        'Quiz d\'évaluation',
+        'Certificat',
+        'Jusqu\'à 50 participants'
+      ]),
+      price: 50000, // 500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'formation',
+      name: 'Technique',
+      slug: 'technique',
+      description: 'Formation technique approfondie',
+      features: JSON.stringify([
+        'Formation présentiel/distanciel',
+        'Exercices pratiques',
+        'Support de cours',
+        'Jusqu\'à 20 participants',
+        'Suivi 3 mois'
+      ]),
+      price: 150000, // 1500€
+      popular: true,
+      recommended: false
+    },
+    {
+      serviceSlug: 'formation',
+      name: 'Expert',
+      slug: 'expert',
+      description: 'Formation d\'experts en cybersécurité',
+      features: JSON.stringify([
+        'Formation sur mesure',
+        'Certification incluse',
+        'Exercices Red Team',
+        'Jusqu\'à 10 participants',
+        'Suivi 6 mois'
+      ]),
+      price: 300000, // 3000€
+      popular: false,
+      recommended: false
+    },
+
+    // Plans Incident
+    {
+      serviceSlug: 'incident',
+      name: 'Investigation',
+      slug: 'investigation',
+      description: 'Investigation et analyse d\'incident',
+      features: JSON.stringify([
+        'Investigation forensique',
+        'Rapport d\'incident',
+        'Recommandations',
+        'Support 30 jours'
+      ]),
+      price: 300000, // 3000€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'incident',
+      name: 'Remédiation',
+      slug: 'remediation',
+      description: 'Gestion complète de l\'incident',
+      features: JSON.stringify([
+        'Investigation complète',
+        'Plan de remédiation',
+        'Mise en œuvre',
+        'Monitoring post-incident',
+        'Support 60 jours'
+      ]),
+      price: 500000, // 5000€
+      popular: true,
+      recommended: false
+    },
+    {
+      serviceSlug: 'incident',
+      name: 'Forensic',
+      slug: 'forensic',
+      description: 'Analyse forensique avancée avec expertise légale',
+      features: JSON.stringify([
+        'Analyse forensique complète',
+        'Expertise légale',
+        'Rapport tribunal',
+        'Témoignage expert',
+        'Support 90 jours'
+      ]),
+      price: 800000, // 8000€
+      popular: false,
+      recommended: false
+    }
+  ]
+
+  // Création des plans
+  for (const planData of servicePlans) {
+    const { serviceSlug, ...planInfo } = planData
+    const service = createdServices[serviceSlug]
+    
+    if (service) {
+      const plan = await prisma.servicePlan.upsert({
+        where: { 
+          serviceId_slug: {
+            serviceId: service.id,
+            slug: planInfo.slug
+          }
+        },
+        update: {
+          ...planInfo,
+          serviceId: service.id
+        },
+        create: {
+          ...planInfo,
+          serviceId: service.id
+        },
+      })
+      console.log(`✅ Plan créé: ${service.name} - ${plan.name}`)
+    }
   }
 
   console.log('🎉 Seed terminé avec succès!')
