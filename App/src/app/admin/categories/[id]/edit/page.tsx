@@ -1,3 +1,4 @@
+import { use } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
@@ -17,11 +18,13 @@ async function CategoryData({ id }: { id: string }) {
 }
 
 // Page principale
-export default async function EditCategoryPage({
+export default function EditCategoryPage({
   params,
 }: {
   params: { id: string }
 }) {
+  const id = use(Promise.resolve(params.id))
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -44,7 +47,7 @@ export default async function EditCategoryPage({
           </div>
 
           <div className="mt-8">
-            <CategoryData id={params.id} />
+            <CategoryData id={id} />
           </div>
         </div>
       </div>
