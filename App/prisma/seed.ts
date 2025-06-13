@@ -614,10 +614,10 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
   // Création des services
   const createdServices: { [key: string]: any } = {}
   for (const serviceData of services) {
-    const service = await prisma.service.upsert({
+    const service = await (prisma as any).service.upsert({
       where: { slug: serviceData.slug },
-      update: serviceData,
-      create: serviceData,
+      update: serviceData as any,
+      create: serviceData as any,
     })
     createdServices[service.slug] = service
     console.log('✅ Service créé:', service.name)
@@ -848,7 +848,7 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
     const service = createdServices[serviceSlug]
     
     if (service) {
-      const plan = await prisma.servicePlan.upsert({
+      const plan = await (prisma as any).servicePlan.upsert({
         where: { 
           serviceId_slug: {
             serviceId: service.id,
