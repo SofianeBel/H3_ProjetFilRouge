@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
         { 
           success: false, 
           message: "Erreur lors de la création de la session de paiement",
-          error: error.message || 'Erreur Stripe'
+          error: (error as any).message || 'Erreur Stripe'
         },
         { status: 500 }
       )

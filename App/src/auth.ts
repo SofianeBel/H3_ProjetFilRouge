@@ -1,11 +1,10 @@
-import NextAuth from 'next-auth'
+const NextAuth = require('next-auth').default
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import { authConfig } from './auth.config'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
-import { z } from 'zod'
 
 /**
  * Configuration NextAuth v5 complète
@@ -107,6 +106,7 @@ export const {
   ],
   
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user }: any) {
       if (user) {
         token.role = user.role

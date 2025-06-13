@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { stripe } from '@/lib/stripe'
+import Stripe from 'stripe'
 
 /**
  * GET /api/admin/orders/[id]
@@ -144,7 +145,11 @@ export async function POST(
 /**
  * Gère le remboursement d'une commande
  */
-async function handleRefund(order: any, amount?: number, reason?: string) {
+async function handleRefund(
+  order: any,
+  amount?: number,
+  reason?: Stripe.RefundCreateParams.Reason,
+) {
   try {
     // Vérification que la commande peut être remboursée
     if (!['succeeded', 'partially_refunded'].includes(order.status)) {
@@ -154,16 +159,23 @@ async function handleRefund(order: any, amount?: number, reason?: string) {
       )
     }
 
-    // Création du remboursement via Stripe
-    const refund = await stripe.refunds.create({
+    // Construction des paramètres pour Stripe – on n'ajoute `amount` que s'il est défini
+    const refundParams: Stripe.RefundCreateParams = {
       payment_intent: order.stripePaymentIntentId,
-      amount: amount, // Si non spécifié, remboursement total
-      reason: reason || 'requested_by_customer',
+      reason: reason ?? 'requested_by_customer',
       metadata: {
         admin_refund: 'true',
-        order_id: order.id
-      }
-    })
+        order_id: order.id,
+      },
+    }
+
+    // Si un montant est précisé (remboursement partiel), on l'ajoute
+    if (typeof amount === 'number') {
+      refundParams.amount = amount
+    }
+
+    // Création du remboursement via Stripe
+    const refund = await stripe.refunds.create(refundParams)
 
     console.log(`💸 Remboursement créé: ${refund.id}`)
 
