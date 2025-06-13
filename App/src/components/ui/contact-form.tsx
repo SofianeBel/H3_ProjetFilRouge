@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { clsx } from 'clsx'
+import { MessageSquare } from 'lucide-react'
 
 interface ContactFormData {
   name: string
@@ -15,19 +16,20 @@ interface ContactFormData {
 interface ContactFormProps {
   className?: string
   onSuccess?: () => void
+  defaultService?: string
 }
 
 /**
- * Composant de formulaire de contact
+ * Composant de formulaire de contact simple
  * Envoie les données vers l'API /api/contact
  */
-export function ContactForm({ className, onSuccess }: ContactFormProps) {
+export function ContactForm({ className, onSuccess, defaultService }: ContactFormProps) {
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     company: '',
     phone: '',
-    service: undefined,
+    service: (defaultService as 'SOC' | 'Audit' | 'Pentest' | 'CERT' | 'Autre') || undefined,
     message: ''
   })
   
@@ -71,7 +73,7 @@ export function ContactForm({ className, onSuccess }: ContactFormProps) {
           email: '',
           company: '',
           phone: '',
-          service: undefined,
+          service: (defaultService as 'SOC' | 'Audit' | 'Pentest' | 'CERT' | 'Autre') || undefined,
           message: ''
         })
         onSuccess?.()
@@ -92,131 +94,146 @@ export function ContactForm({ className, onSuccess }: ContactFormProps) {
   }
 
   return (
-    <div className={clsx('w-full max-w-md', className)}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className={clsx('w-full', className)}>
+      {/* Messages de statut */}
+      {submitStatus.type && (
+        <div className={clsx(
+          'mb-6 p-4 rounded-lg text-sm',
+          submitStatus.type === 'success' 
+            ? 'bg-green-500/20 border border-green-500 text-green-400'
+            : 'bg-red-500/20 border border-red-500 text-red-400'
+        )}>
+          {submitStatus.type === 'success' ? '✅' : '❌'} {submitStatus.message}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Nom */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="contact-name" className="block text-sm font-medium text-gray-300 mb-2">
             Nom complet *
           </label>
           <input
-            id="name"
+            id="contact-name"
             type="text"
             required
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Votre nom"
+            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Votre nom et prénom"
           />
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="contact-email" className="block text-sm font-medium text-gray-300 mb-2">
             Email *
           </label>
           <input
-            id="email"
+            id="contact-email"
             type="email"
             required
             value={formData.email}
             onChange={(e) => handleChange('email', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            placeholder="votre@email.com"
+            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="nom@entreprise.com"
           />
         </div>
 
         {/* Entreprise */}
         <div>
-          <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="contact-company" className="block text-sm font-medium text-gray-300 mb-2">
             Entreprise
           </label>
           <input
-            id="company"
+            id="contact-company"
             type="text"
             value={formData.company}
             onChange={(e) => handleChange('company', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Nom de votre entreprise"
           />
         </div>
 
         {/* Téléphone */}
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-300 mb-2">
             Téléphone
           </label>
           <input
-            id="phone"
+            id="contact-phone"
             type="tel"
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            placeholder="06 12 34 56 78"
+            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="+33 1 23 45 67 89"
           />
         </div>
 
         {/* Service */}
         <div>
-          <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">
-                         Service d&apos;intérêt
+          <label htmlFor="contact-service" className="block text-sm font-medium text-gray-300 mb-2">
+            Service d&apos;intérêt
           </label>
           <select
             id="service"
+            name="service"
+            title="Sélection du service"
             value={formData.service || ''}
             onChange={(e) => handleChange('service', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">Sélectionnez un service</option>
-            <option value="SOC">SOC managé</option>
-            <option value="Audit">Audit de sécurité</option>
-            <option value="Pentest">Test de pénétration</option>
-            <option value="CERT">CERT / Réponse incident</option>
-            <option value="Autre">Autre</option>
+            <option value="">Sélectionnez un service (optionnel)</option>
+            <option value="SOC">Centre Opérationnel de Sécurité (SOC)</option>
+            <option value="Audit">Audit de Sécurité</option>
+            <option value="Pentest">Test de Pénétration</option>
+            <option value="CERT">Équipe de Réponse aux Incidents (CERT)</option>
+            <option value="MSP">Partenariat MSP</option>
+            <option value="Formation">Formation Cybersécurité</option>
+            <option value="Compliance">Mise en Conformité</option>
+            <option value="Incident">Gestion d'Incident</option>
+            <option value="Autre">Autre service</option>
           </select>
         </div>
 
         {/* Message */}
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="contact-message" className="block text-sm font-medium text-gray-300 mb-2">
             Message *
           </label>
           <textarea
-            id="message"
+            id="contact-message"
             required
             rows={4}
             value={formData.message}
             onChange={(e) => handleChange('message', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Décrivez votre besoin..."
+            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            placeholder="Décrivez votre besoin ou votre question..."
           />
         </div>
-
-        {/* Statut de soumission */}
-        {submitStatus.type && (
-          <div className={clsx(
-            'p-3 rounded-md text-sm',
-            submitStatus.type === 'success' 
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          )}>
-            {submitStatus.message}
-          </div>
-        )}
 
         {/* Bouton de soumission */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className={clsx(
-            'w-full py-2 px-4 rounded-md font-medium transition-colors',
-            isSubmitting
-              ? 'bg-gray-400 cursor-not-allowed text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          )}
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"
         >
-          {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
+          {isSubmitting ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Envoi en cours...</span>
+            </>
+          ) : (
+            <>
+              <MessageSquare className="h-5 w-5" />
+              <span>Envoyer ma demande</span>
+            </>
+          )}
         </button>
+
+        <p className="text-sm text-gray-400 text-center">
+          En soumettant ce formulaire, vous acceptez d&apos;être contacté par nos équipes dans les plus brefs délais.
+        </p>
       </form>
     </div>
   )

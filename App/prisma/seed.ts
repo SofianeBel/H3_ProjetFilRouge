@@ -375,6 +375,251 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
     console.log('✅ Article créé:', post.title)
   }
 
+  // Création des services de cybersécurité
+  console.log('🔧 Création des services...')
+  
+  const services = [
+    {
+      name: 'SOC 24/7',
+      slug: 'soc',
+      description: 'Surveillance continue de votre infrastructure par nos experts certifiés. Détection et réponse aux incidents en temps réel.',
+      longDescription: `
+        ## Service SOC 24/7 - Security Operations Center
+        
+        Notre SOC (Security Operations Center) offre une surveillance continue de votre infrastructure informatique, 24 heures sur 24 et 7 jours sur 7.
+        
+        ### Fonctionnalités incluses
+        - Monitoring en temps réel de votre infrastructure
+        - Analyse comportementale avancée avec IA
+        - Réponse aux incidents sous 15 minutes
+        - Rapports mensuels détaillés
+        - Équipe d'experts certifiés disponible 24/7
+        
+        ### Technologies utilisées
+        - SIEM de dernière génération
+        - Intelligence artificielle pour la détection d'anomalies
+        - Corrélation d'événements multi-sources
+        - Threat intelligence en temps réel
+      `,
+      price: 299000, // 2990€ en centimes
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null, // À remplir après création dans Stripe
+      stripePriceId: null,   // À remplir après création dans Stripe
+      published: true,
+      featured: true,
+      category: 'Surveillance',
+      icon: 'Eye',
+      color: 'from-blue-500 to-purple-600'
+    },
+    {
+      name: 'Audit de Sécurité',
+      slug: 'audit',
+      description: 'Analyse approfondie de votre posture de sécurité avec identification des vulnérabilités et plan d\'amélioration.',
+      longDescription: `
+        ## Audit de Sécurité Complet
+        
+        Notre audit de sécurité offre une évaluation complète de votre posture de sécurité informatique.
+        
+        ### Ce qui est inclus
+        - Audit technique complet de l'infrastructure
+        - Analyse des configurations système
+        - Tests de conformité RGPD
+        - Plan de remédiation prioritisé
+        - Rapport exécutif et technique
+        
+        ### Méthodologie
+        - Approche basée sur les standards NIST et ISO 27001
+        - Tests automatisés et manuels
+        - Analyse des vulnérabilités
+        - Évaluation des risques métier
+      `,
+      price: null, // Sur devis
+      currency: 'eur',
+      purchaseType: 'QUOTE',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Audit',
+      icon: 'Shield',
+      color: 'from-green-500 to-blue-600'
+    },
+    {
+      name: 'Tests d\'Intrusion',
+      slug: 'pentest',
+      description: 'Simulations d\'attaques réelles pour tester la robustesse de vos défenses et identifier les failles critiques.',
+      longDescription: `
+        ## Tests d'Intrusion (Pentest)
+        
+        Nos tests d'intrusion simulent des attaques réelles pour évaluer la sécurité de vos systèmes.
+        
+        ### Types de tests
+        - Pentest applicatif (web, mobile)
+        - Pentest réseau et infrastructure
+        - Tests d'ingénierie sociale
+        - Simulation d'attaques avancées (Red Team)
+        
+        ### Livrables
+        - Rapport exécutif pour la direction
+        - Rapport technique détaillé
+        - Preuves de concept (PoC)
+        - Plan de remédiation prioritisé
+      `,
+      price: null, // Sur devis
+      currency: 'eur',
+      purchaseType: 'QUOTE',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Pentest',
+      icon: 'AlertTriangle',
+      color: 'from-red-500 to-orange-600'
+    },
+    {
+      name: 'CERT',
+      slug: 'cert',
+      description: 'Équipe spécialisée dans la réponse aux incidents de sécurité et la gestion de crise cyber.',
+      longDescription: `
+        ## CERT - Computer Emergency Response Team
+        
+        Notre équipe CERT intervient en urgence pour gérer les incidents de sécurité.
+        
+        ### Services d'urgence
+        - Réponse d'urgence 24h/7j
+        - Investigation forensique
+        - Containment et éradication
+        - Accompagnement post-incident
+        
+        ### Expertise
+        - Analystes certifiés en forensic
+        - Spécialistes en réponse à incident
+        - Coordination avec les autorités
+        - Communication de crise
+      `,
+      price: null, // Sur devis
+      currency: 'eur',
+      purchaseType: 'QUOTE',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Incident Response',
+      icon: 'Users',
+      color: 'from-purple-500 to-pink-600'
+    },
+    {
+      name: 'Formation Cybersécurité',
+      slug: 'formation',
+      description: 'Programmes de formation adaptés pour sensibiliser vos équipes aux enjeux de cybersécurité.',
+      longDescription: `
+        ## Formation Cybersécurité
+        
+        Nos programmes de formation renforcent la culture sécurité de votre organisation.
+        
+        ### Modules disponibles
+        - Sensibilisation générale à la cybersécurité
+        - Phishing et ingénierie sociale
+        - Gestion des mots de passe
+        - Sécurité du télétravail
+        - Conformité RGPD
+        
+        ### Formats
+        - Sessions en présentiel ou distanciel
+        - E-learning interactif
+        - Simulations d'attaques
+        - Évaluations et certifications
+      `,
+      price: 149000, // 1490€ en centimes
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Formation',
+      icon: 'GraduationCap',
+      color: 'from-indigo-500 to-purple-600'
+    },
+    {
+      name: 'Conformité RGPD',
+      slug: 'compliance',
+      description: 'Accompagnement complet pour la mise en conformité RGPD et le maintien de votre conformité.',
+      longDescription: `
+        ## Conformité RGPD
+        
+        Accompagnement complet pour votre mise en conformité RGPD.
+        
+        ### Services inclus
+        - Audit de conformité RGPD
+        - Cartographie des traitements
+        - Rédaction des politiques et procédures
+        - Formation des équipes
+        - Accompagnement DPO
+        
+        ### Livrables
+        - Registre des traitements
+        - Analyses d'impact (AIPD)
+        - Procédures de gestion des droits
+        - Plan de mise en conformité
+      `,
+      price: null, // Sur devis
+      currency: 'eur',
+      purchaseType: 'QUOTE',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Conformité',
+      icon: 'FileCheck',
+      color: 'from-emerald-500 to-teal-600'
+    },
+    {
+      name: 'Gestion des Incidents',
+      slug: 'incident',
+      description: 'Service de gestion proactive des incidents de sécurité avec intervention rapide.',
+      longDescription: `
+        ## Gestion des Incidents de Sécurité
+        
+        Service complet de gestion des incidents de sécurité informatique.
+        
+        ### Processus structuré
+        - Détection et alerte immédiate
+        - Classification et priorisation
+        - Containment et éradication
+        - Récupération et surveillance
+        - Post-mortem et amélioration
+        
+        ### Garanties de service
+        - Temps de réponse < 15 minutes
+        - Équipe d'experts disponible 24/7
+        - Coordination avec vos équipes
+        - Reporting en temps réel
+      `,
+      price: 199000, // 1990€ en centimes
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Incident Response',
+      icon: 'AlertCircle',
+      color: 'from-orange-500 to-red-600'
+    }
+  ]
+
+  // Création des services
+  for (const serviceData of services) {
+    const service = await prisma.service.upsert({
+      where: { slug: serviceData.slug },
+      update: serviceData,
+      create: serviceData,
+    })
+    console.log('✅ Service créé:', service.name)
+  }
+
   console.log('🎉 Seed terminé avec succès!')
 }
 

@@ -1,152 +1,186 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import { Resend } from 'resend'
+import { z } from 'zod'
 import crypto from 'crypto'
+import { prisma } from '@/lib/prisma'
+import { Resend } from 'resend'
 
-const prisma = new PrismaClient()
+// Initialisation de Resend pour l'envoi d'emails
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+// Schéma de validation pour la demande de réinitialisation
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Email invalide')
+})
 
 /**
  * API pour demander une réinitialisation de mot de passe
  * POST /api/auth/forgot-password
+ * 
+ * Génère un token sécurisé et envoie un email de réinitialisation
+ * Retourne toujours un message neutre pour éviter la fuite d'informations
  */
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
-
-    // Validation de l'email
-    if (!email || !email.includes('@')) {
+    const body = await request.json()
+    
+    // Validation des données d'entrée
+    const validationResult = forgotPasswordSchema.safeParse(body)
+    
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Email invalide.' },
+        { 
+          error: 'Email invalide',
+          details: validationResult.error.errors 
+        },
         { status: 400 }
       )
     }
 
-    // Vérifier si l'utilisateur existe
+    const { email } = validationResult.data
+
+    // Vérifier si l'utilisateur existe (sans révéler l'information)
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { email }
     })
 
-    // Pour des raisons de sécurité, on retourne toujours le même message
-    // même si l'utilisateur n'existe pas (évite l'énumération d'emails)
-    const successMessage = 'Si cet email existe dans notre système, vous recevrez un lien de réinitialisation.'
+    // Toujours retourner le même message pour éviter l'énumération d'emails
+    const neutralMessage = 'Si cet email existe dans notre système, un lien de réinitialisation a été envoyé'
 
+    // Si l'utilisateur n'existe pas, on retourne quand même un succès
     if (!user) {
-      // Log de tentative sur email inexistant pour monitoring
-      console.warn(`Tentative de reset password sur email inexistant: ${email}`)
-      return NextResponse.json({ message: successMessage })
+      return NextResponse.json({
+        message: neutralMessage
+      })
     }
 
-    // Vérifier si l'utilisateur a un mot de passe (pas un compte OAuth uniquement)
-    if (!user.password) {
-      console.warn(`Tentative de reset password sur compte OAuth: ${email}`)
-      return NextResponse.json({ 
-        error: 'Ce compte utilise une connexion externe (Google, Microsoft). Utilisez votre provider habituel pour vous connecter.' 
-      }, { status: 400 })
-    }
-
-    // Générer un token sécurisé
-    const resetToken = crypto.randomBytes(32).toString('hex')
-    const tokenExpiry = new Date(Date.now() + 3600000) // 1 heure
-
-    // Supprimer les anciens tokens pour cet email
+    // Supprimer les anciens tokens de réinitialisation pour cet email
+    // Cela évite l'accumulation de tokens et limite les tentatives
     await prisma.passwordResetToken.deleteMany({
-      where: { email: email.toLowerCase() }
+      where: { email }
     })
 
-    // Créer le nouveau token
+    // Générer un token cryptographiquement sécurisé
+    const resetToken = crypto.randomBytes(32).toString('hex')
+    
+    // Définir l'expiration à 1 heure (sécurité)
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 heure
+
+    // Sauvegarder le token en base de données
     await prisma.passwordResetToken.create({
       data: {
-        email: email.toLowerCase(),
+        email,
         token: resetToken,
-        expires: tokenExpiry,
+        expires: expiresAt,
+        used: false
       }
     })
 
     // Construire l'URL de réinitialisation
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`
+    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`
 
-    // Envoyer l'email de réinitialisation
+    // Envoyer l'email de réinitialisation via Resend
     try {
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL!,
+        from: process.env.RESEND_FROM_EMAIL || 'contact@cyna-it.fr',
         to: email,
         subject: 'Réinitialisation de votre mot de passe - Cyna',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-              <h1 style="color: white; margin: 0;">Cyna - Cybersécurité</h1>
-            </div>
-            
-            <div style="padding: 30px; background: #f8f9fa;">
-              <h2 style="color: #333; margin-bottom: 20px;">Réinitialisation de mot de passe</h2>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 20px;">
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #A67FFB; margin: 0; font-size: 28px;">Cyna</h1>
+                <p style="color: #64748b; margin: 5px 0 0 0;">Cybersécurité pour PME et MSP</p>
+              </div>
               
-              <p style="color: #666; line-height: 1.6;">
-                Bonjour <strong>${user.name || 'Utilisateur'}</strong>,
+              <h2 style="color: #1e293b; margin-bottom: 20px;">Réinitialisation de mot de passe</h2>
+              
+              <p style="color: #475569; line-height: 1.6; margin-bottom: 20px;">
+                Bonjour,
               </p>
               
-              <p style="color: #666; line-height: 1.6;">
-                Vous avez demandé la réinitialisation de votre mot de passe. 
-                Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :
+              <p style="color: #475569; line-height: 1.6; margin-bottom: 25px;">
+                Vous avez demandé la réinitialisation de votre mot de passe sur Cyna. 
+                Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :
               </p>
               
-              <div style="text-align: center; margin: 30px 0;">
+              <div style="text-align: center; margin: 35px 0;">
                 <a href="${resetUrl}" 
-                   style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                   style="background: linear-gradient(135deg, #A67FFB, #8B5CF6); 
+                          color: white; 
+                          padding: 14px 28px; 
+                          text-decoration: none; 
+                          border-radius: 8px; 
+                          display: inline-block; 
+                          font-weight: 600;
+                          font-size: 16px;">
                   Réinitialiser mon mot de passe
                 </a>
               </div>
               
-              <p style="color: #666; line-height: 1.6; font-size: 14px;">
-                Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :<br>
-                <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
-              </p>
-              
-              <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="color: #856404; margin: 0; font-size: 14px;">
-                  ⚠️ <strong>Important :</strong> Ce lien expire dans 1 heure pour votre sécurité.
-                  Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
+              <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 25px 0;">
+                <p style="color: #92400e; margin: 0; font-weight: 600;">⚠️ Important :</p>
+                <p style="color: #92400e; margin: 5px 0 0 0; font-size: 14px;">
+                  Ce lien expire dans <strong>1 heure</strong> pour votre sécurité.
                 </p>
               </div>
               
-              <p style="color: #666; line-height: 1.6; font-size: 14px;">
-                Cordialement,<br>
-                L'équipe Cyna
+              <p style="color: #475569; line-height: 1.6; margin-bottom: 15px;">
+                Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email. 
+                Votre mot de passe actuel reste inchangé.
               </p>
-            </div>
-            
-            <div style="background: #343a40; padding: 20px; text-align: center;">
-              <p style="color: #adb5bd; margin: 0; font-size: 12px;">
-                Cyna - Solutions de cybersécurité pour PME et MSP<br>
-                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+              
+              <p style="color: #475569; line-height: 1.6; margin-bottom: 25px;">
+                Pour votre sécurité, ne partagez jamais ce lien avec personne.
+              </p>
+              
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+              
+              <p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 0;">
+                Cet email a été envoyé automatiquement par Cyna.<br>
+                Si vous avez des questions, contactez-nous à contact@cyna-it.fr
               </p>
             </div>
           </div>
         `
       })
 
-      console.log(`Email de reset password envoyé à: ${email}`)
-      
+      // Log de sécurité pour audit
+      await prisma.authenticationLog.create({
+        data: {
+          userId: user.id,
+          event: 'PASSWORD_RESET_REQUEST',
+          success: true,
+          ipAddress: request.headers.get('x-forwarded-for') || '127.0.0.1',
+          userAgent: request.headers.get('user-agent') || 'unknown',
+          details: JSON.stringify({
+            email: user.email,
+            tokenExpires: expiresAt.toISOString()
+          })
+        }
+      })
+
     } catch (emailError) {
-      console.error('Erreur lors de l\'envoi de l\'email:', emailError)
+      console.error('Erreur envoi email de réinitialisation:', emailError)
       
       // Supprimer le token si l'email n'a pas pu être envoyé
-      await prisma.passwordResetToken.delete({
-        where: { token: resetToken }
+      await prisma.passwordResetToken.deleteMany({
+        where: { email }
       })
       
       return NextResponse.json(
-        { error: 'Erreur lors de l\'envoi de l\'email. Veuillez réessayer.' },
+        { error: 'Erreur lors de l\'envoi de l\'email' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ message: successMessage })
+    return NextResponse.json({
+      message: neutralMessage
+    })
 
   } catch (error) {
-    console.error('Erreur lors de la demande de reset password:', error)
+    console.error('Erreur forgot-password:', error)
     return NextResponse.json(
-      { error: 'Erreur interne du serveur.' },
+      { error: 'Erreur serveur' },
       { status: 500 }
     )
   }

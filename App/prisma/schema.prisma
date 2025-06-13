@@ -5,19 +5,14 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
-// Base de données SQLite pour développement
-//datasource db {
-  //provider = "sqlite"
-  //url      = "file:./dev.db"
-//}
-
-// Base de données PostgreSQL pour production (décommenter pour migrer)
+// Configuration pour développement SQLite
 datasource db {
-   provider = "postgresql"
-   url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // Modèle pour les demandes de contact
@@ -157,9 +152,11 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(CLIENT)
+  active        Boolean   @default(true)  // Soft-delete : true = actif, false = désactivé
   accounts      Account[]
   sessions      Session[]
   blogPosts     BlogPost[]
+  orders        Order[]   // Relation vers les commandes
   
   // Relations RGPD
   consentRecords   DataProcessingConsent[]
@@ -191,6 +188,40 @@ model PasswordResetToken {
   createdAt  DateTime @default(now())
 
   @@map("password_reset_tokens")
+}
+
+// Modèle pour les offres d'emploi
+model JobOffer {
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  description  String   // Description complète du poste
+  requirements String   // Prérequis et compétences requises (JSON)
+  advantages   String   // Avantages du poste (JSON)
+  
+  // Informations pratiques
+  type         JobType
+  location     String
+  salary       String?
+  experience   String   // Niveau d'expérience requis
+  department   String   // Département/équipe
+  
+  // Statut et visibilité
+  published    Boolean  @default(false)
+  featured     Boolean  @default(false)
+  urgent       Boolean  @default(false)
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  // Dates
+  publishedAt  DateTime?
+  expiresAt    DateTime? // Date d'expiration de l'offre
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("job_offers")
 }
 
 // Modèle pour les consentements RGPD
@@ -294,4 +325,63 @@ enum AuthEventType {
   SUSPICIOUS_ACTIVITY
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
+}
+
+enum JobType {
+  CDI
+  CDD
+  STAGE
+  FREELANCE
+  ALTERNANCE
+}
+
+// Enum pour définir le type d'achat des services
+enum PurchaseType {
+  PRE_CONFIGURED  // Service avec prix fixe, achetable directement
+  QUOTE          // Service sur devis, passe par le flow Booking
+}
+
+// Modèle pour les services de cybersécurité
+model Service {
+  id              String       @id @default(cuid())
+  name            String       // Nom du service (ex: "Audit de Sécurité")
+  slug            String       @unique // Slug pour l'URL (ex: "audit")
+  description     String?      // Description courte
+  longDescription String?      // Description détaillée (markdown)
+  price           Int?         // Prix en centimes (null si QUOTE)
+  currency        String       @default("eur")
+  purchaseType    PurchaseType @default(QUOTE)
+  
+  // Intégration Stripe pour les services PRE_CONFIGURED
+  stripeProductId String?      // ID du produit Stripe
+  stripePriceId   String?      // ID du prix Stripe
+  
+  // Métadonnées
+  published       Boolean      @default(true)
+  featured        Boolean      @default(false)
+  category        String?      // Catégorie du service
+  icon            String?      // Nom de l'icône Lucide
+  color           String?      // Couleur du gradient (ex: "from-blue-500 to-purple-600")
+  
+  // Dates
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("services")
+}
+
+// Modèle pour les commandes Stripe
+model Order {
+  id                    String   @id @default(cuid())
+  stripePaymentIntentId String   @unique  // ID du PaymentIntent Stripe
+  userId                String?             // FK vers User (optionnel)
+  user                  User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount                Int                 // Montant en centimes
+  currency              String    @default("eur")
+  status                String              // paid, refunded, pending, failed, etc.
+  metadata              Json?               // Métadonnées extensibles
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("orders")
 }
