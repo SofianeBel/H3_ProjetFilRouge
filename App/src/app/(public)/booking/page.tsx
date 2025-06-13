@@ -280,4 +280,7 @@ export default function UnifiedContactPage() {
       </div>
     </div>
   )
-} 
+}
+
+// On force le rendu dynamique, car on dépend des query params via useSearchParams()
+export const dynamic = 'force-dynamic' 
