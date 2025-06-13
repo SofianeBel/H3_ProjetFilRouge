@@ -7,10 +7,11 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params
+    // On attend la Promise puis on extrait le slug
+    const { slug } = await params
 
     // Récupération du service par slug avec ses plans
     const service = await prisma.service.findUnique({
