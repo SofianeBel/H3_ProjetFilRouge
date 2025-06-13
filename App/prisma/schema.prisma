@@ -12,7 +12,7 @@ generator client {
 // Configuration pour développement SQLite
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = env("Cyna_DATABASE_URL")
 }
 
 // Modèle pour les demandes de contact
