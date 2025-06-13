@@ -11,7 +11,7 @@ generator client {
 
 // Configuration pour développement SQLite
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("Cyna_DATABASE_URL")
 }
 
