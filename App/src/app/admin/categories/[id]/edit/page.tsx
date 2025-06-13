@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { use } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
@@ -98,7 +98,7 @@ function EditCategoryForm({ category }: { category: Category }) {
   )
 }
 
-// Composant serveur pour la page
+// Composant serveur pour les données
 async function CategoryData({ id }: { id: string }) {
   const category = await prisma.category.findUnique({
     where: { id },
@@ -111,11 +111,14 @@ async function CategoryData({ id }: { id: string }) {
   return <EditCategoryForm category={category} />
 }
 
+// Page principale
 export default function EditCategoryPage({
   params,
 }: {
   params: { id: string }
 }) {
+  const id = use(Promise.resolve(params.id))
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -138,16 +141,7 @@ export default function EditCategoryPage({
           </div>
 
           <div className="mt-8">
-            <Suspense
-              fallback={
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-                  <p className="mt-4 text-gray-500">Chargement...</p>
-                </div>
-              }
-            >
-              <CategoryData id={params.id} />
-            </Suspense>
+            <CategoryData id={id} />
           </div>
         </div>
       </div>
