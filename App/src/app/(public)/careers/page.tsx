@@ -169,7 +169,7 @@ export default async function CareersPage() {
           </div>
           
           <div className="space-y-8">
-            {jobOffers.map((job, index) => (
+            {jobOffers.map((job: any, index: number) => (
               <div key={index} className="bg-white rounded-2xl p-8 shadow-lg">
                 <div className="grid lg:grid-cols-3 gap-8">
                   {/* Informations principales */}
