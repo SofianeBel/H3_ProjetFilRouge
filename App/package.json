@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:reset": "npx prisma db push --force-reset",
+    "db:seed": "npx prisma db seed",
+    "db:clean": "ts-node prisma/clean-db.ts"
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.9.1",
@@ -43,6 +46,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "prisma": "^6.9.0",
     "tailwindcss": "^4.1.8",
     "typescript": "^5"
   },

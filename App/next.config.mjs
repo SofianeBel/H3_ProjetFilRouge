@@ -9,6 +9,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false
   },
+  // Configuration des source maps
+  productionBrowserSourceMaps: true,
+  // Optimisations de build
+  poweredByHeader: false,
+  reactStrictMode: true,
   // Configuration des images pour autoriser les domaines externes
   images: {
     domains: [
