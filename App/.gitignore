@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/playwright/.cache/
 
 # next.js
 /.next/
@@ -40,8 +43,49 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Base de données locale
+# Base de données locale / Prisma
 prisma/dev.db
 prisma/dev.db-journal
-
 /src/generated/prisma
+/prisma/dev.db
+/prisma/dev.db-journal
+*.db
+*.db-journal
+
+# IDE - Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IDE - IntelliJ/WebStorm
+.idea/
+*.swp
+*.swo
+
+# Cache et fichiers temporaires
+.cache/
+.turbo/
+.swc/
+*.tmp
+*.temp
+*~
+
+# Logs supplémentaires
+lerna-debug.log*
+.npm
+
+# Système d'exploitation
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# SSL certificates (si utilisés pour le dev local)
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Rapports et documentation générés automatiquement
+/documentation/generated/

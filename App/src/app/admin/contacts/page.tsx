@@ -151,7 +151,7 @@ function Pagination({ pagination, searchParams }: {
         {/* Page précédente */}
         {currentPage > 1 && (
           <Link
-            href={`/admin/contacts?page=${currentPage - 1}&${generateQueryString(searchParams)}`}
+            href={`/admin/contacts?page=${currentPage - 1}&${Object.entries(searchParams).filter(([, value]) => value).map(([key, value]) => `${key}=${value}`).join('&')}`}
             className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
           >
             Précédent

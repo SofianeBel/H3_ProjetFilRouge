@@ -1,37 +1,58 @@
 @import "tailwindcss";
 
 @theme {
-  /* Couleurs principales Cyna */
-  --color-cyna-primary: #6B8DE5;
-  --color-cyna-secondary: #8E63E5;
-  --color-cyna-accent: #A67FFB;
-  --color-cyna-dark: #111318;
-  --color-cyna-dark-secondary: #161A22;
-  --color-cyna-border: #292e38;
-  
-  /* Variables Shadcn UI */
-  --background: 17 19 24; /* #111318 */
-  --foreground: 255 255 255;
-  --card: 22 26 34; /* #161A22 */
-  --card-foreground: 255 255 255;
-  --popover: 17 19 24;
-  --popover-foreground: 255 255 255;
-  --primary: 107 141 229; /* #6B8DE5 */
+  /* ===== LIGHT MODE - COULEURS DE BASE ===== */
+  --color-background: #FFFFFF;
+  --color-background-secondary: #FAFBFC;
+  --color-background-tertiary: #F1F3F5;
+
+  /* Texte moderne */
+  --color-text-primary: #1A1D29;
+  --color-text-secondary: #525866;
+  --color-text-tertiary: #6C727F;
+
+  /* Bordures élégantes */
+  --color-border-light: #E1E5E9;
+  --color-border-medium: #D0D7DE;
+  --color-border-strong: #AFBAC4;
+
+  /* ===== COULEURS DE MARQUE MODERNISÉES ===== */
+  --color-primary-start: #6366F1;    /* Indigo moderne */
+  --color-primary-end: #8B5CF6;      /* Violet moderne */
+  --color-secondary-start: #06B6D4;  /* Cyan */
+  --color-secondary-end: #3B82F6;    /* Bleu */
+  --color-accent-start: #10B981;     /* Emerald */
+  --color-accent-end: #059669;       /* Emerald foncé */
+
+  /* ===== VARIABLES SHADCN UI LIGHT MODE ===== */
+  --background: 255 255 255; /* #FFFFFF */
+  --foreground: 26 29 41; /* #1A1D29 */
+  --card: 250 251 252; /* #FAFBFC */
+  --card-foreground: 26 29 41;
+  --popover: 255 255 255;
+  --popover-foreground: 26 29 41;
+  --primary: 99 102 241; /* #6366F1 */
   --primary-foreground: 255 255 255;
-  --secondary: 41 46 56; /* #292e38 */
-  --secondary-foreground: 255 255 255;
-  --muted: 41 46 56;
-  --muted-foreground: 156 163 175;
-  --accent: 166 127 251; /* #A67FFB */
-  --accent-foreground: 17 19 24;
-  --destructive: 220 38 38;
+  --secondary: 241 243 245; /* #F1F3F5 */
+  --secondary-foreground: 26 29 41;
+  --muted: 241 243 245;
+  --muted-foreground: 108 114 127;
+  --accent: 16 185 129; /* #10B981 */
+  --accent-foreground: 255 255 255;
+  --destructive: 239 68 68;
   --destructive-foreground: 255 255 255;
-  --border: 41 46 56; /* #292e38 */
-  --input: 41 46 56;
-  --ring: 107 141 229; /* #6B8DE5 */
+  --border: 225 229 233; /* #E1E5E9 */
+  --input: 225 229 233;
+  --ring: 99 102 241; /* #6366F1 */
   --radius: 0.75rem;
+
+  /* ===== MODE SOMBRE (OPTIONNEL POUR TOGGLE FUTUR) ===== */
+  --color-dark-bg: #0A0A0B;
+  --color-dark-surface: #111111;
+  --color-dark-border: #1E1E1E;
 }
 
+/* ===== BASE STYLES ===== */
 * {
   border-color: hsl(var(--border));
 }
@@ -40,113 +61,263 @@ body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
   font-feature-settings: "rlig" 1, "calt" 1;
+  /* Je pense que ces paramètres améliorent la lisibilité des polices */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Gradient hero personnalisé */
-.gradient-hero {
-  background-image: linear-gradient(
-    to bottom, 
-    rgba(17, 19, 24, 0.3) 0%, 
-    rgba(17, 19, 24, 0.8) 70%, 
-    #111318 100%
-  ),
-  url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfIC0V0lG43dN-0S9vvCFH3tqGrHh2-6OkRf0le6ujTfPyf828vC7rXZNwPzysCh7XOnJpn7ZhCC8oq4tWy0MkqRTnXDrZeE7c5R7YwGUo3EUT5qumWDD63mrQKWW9s4wdYvUxlLSlzrUNrMNow3v2EAwy-eGCpAW0rycafQvG5ExHGXh_Tp6EBqduRcG2WXLn4H4WSOq9gPIAo0g3_bBbe8X4VSFe81UgMrvY2Xmo5PYIF73O0EoTKkgKpvr98yPI963T4ZtfltVs");
+/* ===== GRADIENTS MODERNES ===== */
+
+/* Hero Background - Design inspiré de Cursor/Linear */
+.gradient-hero-light {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.08) 0%,
+    rgba(139, 92, 246, 0.05) 30%,
+    rgba(255, 255, 255, 0.95) 70%,
+    rgba(6, 182, 212, 0.03) 100%
+  );
+  /* Overlay subtil pour améliorer la lisibilité */
+  position: relative;
 }
 
-/* Utilities personnalisées pour Cyna - Nouvelle syntaxe v4 */
-@utility btn-cyna {
-  border-radius: 0.5rem;
-  padding: 1.5rem 1rem;
+.gradient-hero-light::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(99, 102, 241, 0.1),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Section Accents - Style Supabase */
+.gradient-accent {
+  background: linear-gradient(
+    90deg,
+    rgba(6, 182, 212, 0.08) 0%,
+    rgba(59, 130, 246, 0.05) 50%,
+    rgba(16, 185, 129, 0.08) 100%
+  );
+}
+
+/* CTA Gradients - Style moderne */
+.gradient-primary-button {
+  background: linear-gradient(
+    135deg,
+    #6366F1 0%,
+    #8B5CF6 100%
+  );
+  box-shadow: 
+    0 4px 14px rgba(99, 102, 241, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.gradient-secondary-button {
+  background: linear-gradient(
+    135deg,
+    #06B6D4 0%,
+    #3B82F6 100%
+  );
+}
+
+/* ===== TYPOGRAPHIE MODERNE ===== */
+
+/* Hero - Impact maximum comme Vercel */
+.text-hero {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  /* Gradient text pour les titres hero */
+  background: linear-gradient(
+    135deg,
+    var(--color-text-primary) 0%,
+    var(--color-primary-start) 50%,
+    var(--color-primary-end) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Section Titles */
+.text-section {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+/* Body Large */
+.text-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+/* Body Regular */
+.text-body {
   font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+/* ===== SPACING ET LAYOUT MODERNE ===== */
+
+/* Containers modernes - Style Linear */
+.container-modern {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 5vw, 3rem);
+}
+
+/* Sections spacing généreux */
+.section-spacing {
+  padding: clamp(4rem, 8vw, 8rem) 0;
+}
+
+/* Component spacing harmonieux */
+.component-spacing {
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+/* ===== COMPOSANTS MODERNES ===== */
+
+/* Boutons modernes avec micro-interactions */
+@utility btn-modern {
+  border-radius: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  transition: all 200ms;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  position: relative;
+  overflow: hidden;
   
-  &:focus {
+  /* Focus moderne */
+  &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px hsl(var(--ring)), 0 0 0 2px hsl(var(--background));
+    box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary-start);
   }
 }
 
 @utility btn-primary {
-  background-color: #6B8DE5;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
   color: white;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  box-shadow: 
+    0 4px 14px rgba(99, 102, 241, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.1);
   
   &:hover {
-    transform: scale(1.05);
-    background-color: #8E63E5;
+    transform: translateY(-1px);
+    box-shadow: 
+      0 8px 20px rgba(99, 102, 241, 0.3),
+      0 2px 6px rgba(0, 0, 0, 0.15);
   }
   
-  &:focus {
-    box-shadow: 0 0 0 2px #A67FFB, 0 0 0 2px #111318;
+  &:active {
+    transform: translateY(0);
   }
 }
 
 @utility btn-secondary {
-  background-color: transparent;
-  border: 1px solid #292e38;
-  color: white;
+  background: var(--color-background);
+  border: 1px solid var(--color-border-medium);
+  color: var(--color-text-primary);
   
   &:hover {
-    background-color: #292e38;
-    color: white;
+    background: var(--color-background-secondary);
+    border-color: var(--color-border-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
-@utility card-cyna {
-  border-radius: 0.75rem;
-  border: 1px solid #292e38;
-  background-color: #161A22;
+/* Cards modernes - Style inspiré de tous les sites référence */
+@utility card-modern {
+  border-radius: 1rem;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-background);
   padding: 1.5rem;
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  transition: all 300ms;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 @utility card-hover {
   &:hover {
-    border-color: rgba(166, 127, 251, 0.5);
-    box-shadow: 0 25px 50px -12px rgba(166, 127, 251, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 8px 32px rgba(99, 102, 241, 0.12);
+    transform: translateY(-2px);
   }
 }
 
-@utility container-cyna {
-  width: 100%;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  
-  @media (min-width: 768px) {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
-  }
-}
-
-@utility section-separator {
-  border-top: 1px solid #292e38;
-}
-
-/* Scrollbar personnalisée */
+/* ===== SCROLLBAR MODERNE ===== */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--background));
+  background: var(--color-background-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 4px;
+  background: var(--color-border-medium);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary));
+  background: var(--color-primary-start);
 }
 
-/* Animation pour les gradients */
+/* ===== ANIMATIONS KEYFRAMES ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes gradient-shift {
   0%, 100% {
     background-position: 0% 50%;
@@ -156,45 +327,102 @@ body {
   }
 }
 
+/* Animation pour les gradients */
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-shift 8s ease infinite;
+}
+
+/* ===== ACCESSIBILITÉ ===== */
+
+/* Respect des préférences reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Focus visible amélioré pour l'accessibilité */
 .focus-visible {
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px #6B8DE5, 0 0 0 2px #111318;
+    box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary-start);
   }
 }
 
-/* Typography responsive */
-.text-hero {
-  font-size: 2.25rem;
-  font-weight: 900;
-  letter-spacing: -0.025em;
-  
-  @media (min-width: 640px) {
-    font-size: 3rem;
-  }
-  
-  @media (min-width: 768px) {
-    font-size: 3.75rem;
+/* ===== DARK MODE SUPPORT (FUTUR) ===== */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-auto {
+    --background: 10 10 11; /* #0A0A0B */
+    --foreground: 255 255 255;
+    --card: 17 17 17; /* #111111 */
+    --border: 30 30 30; /* #1E1E1E */
   }
 }
 
-.text-section-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  
-  @media (min-width: 640px) {
-    font-size: 2.25rem;
+/* ===== UTILITIES RESPONSIVE ===== */
+
+/* Containers responsive */
+.container-sm {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.container-md {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-lg {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container-xl {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+/* Spacing responsive */
+.section-spacing-sm {
+  padding: clamp(2rem, 4vw, 3rem) 0;
+}
+
+.section-spacing-md {
+  padding: clamp(3rem, 6vw, 5rem) 0;
+}
+
+.section-spacing-lg {
+  padding: clamp(4rem, 8vw, 8rem) 0;
+}
+
+/* ===== CONTAINER PERSONNALISÉ CYNA ===== */
+
+/* Container principal pour limiter la largeur du contenu comme Cursor */
+.container-cyna {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Padding responsive pour différentes tailles d'écran */
+@media (min-width: 640px) {
+  .container-cyna {
+    padding: 0 1.5rem;
   }
 }
 
-.text-card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+@media (min-width: 1024px) {
+  .container-cyna {
+    padding: 0 2rem;
+  }
 }
+

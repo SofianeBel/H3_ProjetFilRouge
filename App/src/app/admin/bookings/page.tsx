@@ -206,6 +206,7 @@ export default function AdminBookingsPage() {
   // Chargement initial et lors des changements de filtres
   useEffect(() => {
     loadBookings()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
 
   return (

@@ -375,6 +375,499 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
     console.log('✅ Article créé:', post.title)
   }
 
+  // Création des services de cybersécurité
+  console.log('🔧 Création des services...')
+  
+  const services = [
+    {
+      name: 'SOC 24/7',
+      slug: 'soc',
+      description: 'Surveillance continue de votre infrastructure par nos experts certifiés. Détection et réponse aux incidents en temps réel.',
+      longDescription: `
+        ## Service SOC 24/7 - Security Operations Center
+        
+        Notre SOC (Security Operations Center) offre une surveillance continue de votre infrastructure informatique, 24 heures sur 24 et 7 jours sur 7.
+        
+        ### Fonctionnalités incluses
+        - Monitoring en temps réel de votre infrastructure
+        - Analyse comportementale avancée avec IA
+        - Réponse aux incidents sous 15 minutes
+        - Rapports mensuels détaillés
+        - Équipe d'experts certifiés disponible 24/7
+        
+        ### Technologies utilisées
+        - SIEM de dernière génération
+        - Intelligence artificielle pour la détection d'anomalies
+        - Corrélation d'événements multi-sources
+        - Threat intelligence en temps réel
+      `,
+      price: null, // Prix variable selon les plans
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Surveillance',
+      icon: 'Eye',
+      color: 'from-blue-500 to-purple-600'
+    },
+    {
+      name: 'Audit de Sécurité',
+      slug: 'audit',
+      description: 'Analyse approfondie de votre posture de sécurité avec identification des vulnérabilités et plan d\'amélioration.',
+      longDescription: `
+        ## Audit de Sécurité Complet
+        
+        Notre audit de sécurité offre une évaluation complète de votre posture de sécurité informatique.
+        
+        ### Ce qui est inclus
+        - Audit technique complet de l'infrastructure
+        - Analyse des configurations système
+        - Tests de conformité RGPD
+        - Plan de remédiation prioritisé
+        - Rapport exécutif et technique
+        
+        ### Méthodologie
+        - Approche basée sur les standards NIST et ISO 27001
+        - Tests automatisés et manuels
+        - Analyse des vulnérabilités
+        - Évaluation des risques métier
+      `,
+      price: null, // Prix variable selon les plans
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Audit',
+      icon: 'Shield',
+      color: 'from-green-500 to-blue-600'
+    },
+    {
+      name: 'Tests d\'Intrusion',
+      slug: 'pentest',
+      description: 'Simulations d\'attaques réelles pour tester la robustesse de vos défenses et identifier les failles critiques.',
+      longDescription: `
+        ## Tests d'Intrusion (Pentest)
+        
+        Nos tests d'intrusion simulent des attaques réelles pour évaluer la sécurité de vos systèmes.
+        
+        ### Types de tests
+        - Pentest applicatif (web, mobile)
+        - Pentest réseau et infrastructure
+        - Tests d'ingénierie sociale
+        - Simulation d'attaques avancées (Red Team)
+        
+        ### Livrables
+        - Rapport exécutif pour la direction
+        - Rapport technique détaillé
+        - Preuves de concept (PoC)
+        - Plan de remédiation prioritisé
+      `,
+      price: null, // Prix variable selon les plans
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Pentest',
+      icon: 'AlertTriangle',
+      color: 'from-red-500 to-orange-600'
+    },
+    {
+      name: 'Formation Cybersécurité',
+      slug: 'formation',
+      description: 'Programmes de formation adaptés pour sensibiliser vos équipes aux enjeux de cybersécurité.',
+      longDescription: `
+        ## Formation Cybersécurité
+        
+        Nos programmes de formation renforcent la culture sécurité de votre organisation.
+        
+        ### Modules disponibles
+        - Sensibilisation générale à la cybersécurité
+        - Phishing et ingénierie sociale
+        - Gestion des mots de passe
+        - Sécurité du télétravail
+        - Conformité RGPD
+        
+        ### Formats
+        - Sessions en présentiel ou distanciel
+        - E-learning interactif
+        - Simulations d'attaques
+        - Évaluations et certifications
+      `,
+      price: null, // Prix variable selon les plans
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Formation',
+      icon: 'GraduationCap',
+      color: 'from-indigo-500 to-purple-600'
+    },
+    {
+      name: 'Gestion des Incidents',
+      slug: 'incident',
+      description: 'Service de gestion proactive des incidents de sécurité avec intervention rapide.',
+      longDescription: `
+        ## Gestion des Incidents de Sécurité
+        
+        Service complet de gestion des incidents de sécurité informatique.
+        
+        ### Processus structuré
+        - Détection et alerte immédiate
+        - Classification et priorisation
+        - Containment et éradication
+        - Récupération et surveillance
+        - Post-mortem et amélioration
+        
+        ### Garanties de service
+        - Temps de réponse < 15 minutes
+        - Équipe d'experts disponible 24/7
+        - Coordination avec vos équipes
+        - Reporting en temps réel
+      `,
+      price: null, // Prix variable selon les plans
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED', // On a des plans avec prix fixes
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Incident Response',
+      icon: 'AlertCircle',
+      color: 'from-orange-500 to-red-600'
+    },
+    // Services sur devis uniquement
+    {
+      name: 'CERT',
+      slug: 'cert',
+      description: 'Équipe spécialisée dans la réponse aux incidents de sécurité et la gestion de crise cyber.',
+      longDescription: `
+        ## CERT - Computer Emergency Response Team
+        
+        Notre équipe CERT intervient en urgence pour gérer les incidents de sécurité.
+        
+        ### Services d'urgence
+        - Réponse d'urgence 24h/7j
+        - Investigation forensique
+        - Containment et éradication
+        - Accompagnement post-incident
+        
+        ### Expertise
+        - Analystes certifiés en forensic
+        - Spécialistes en réponse à incident
+        - Coordination avec les autorités
+        - Communication de crise
+      `,
+      price: null,
+      currency: 'eur',
+      purchaseType: 'QUOTE', // Sur devis uniquement
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Incident Response',
+      icon: 'Users',
+      color: 'from-purple-500 to-pink-600'
+    },
+    {
+      name: 'Conformité RGPD',
+      slug: 'compliance',
+      description: 'Accompagnement complet pour la mise en conformité RGPD et le maintien de votre conformité.',
+      longDescription: `
+        ## Conformité RGPD
+        
+        Accompagnement complet pour votre mise en conformité RGPD.
+        
+        ### Services inclus
+        - Audit de conformité RGPD
+        - Cartographie des traitements
+        - Rédaction des politiques et procédures
+        - Formation des équipes
+        - Accompagnement DPO
+        
+        ### Livrables
+        - Registre des traitements
+        - Analyses d'impact (AIPD)
+        - Procédures de gestion des droits
+        - Plan de mise en conformité
+      `,
+      price: null,
+      currency: 'eur',
+      purchaseType: 'QUOTE', // Sur devis uniquement
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Conformité',
+      icon: 'FileCheck',
+      color: 'from-emerald-500 to-teal-600'
+    }
+  ]
+
+  // Création des services
+  const createdServices: { [key: string]: any } = {}
+  for (const serviceData of services) {
+    const service = await (prisma as any).service.upsert({
+      where: { slug: serviceData.slug },
+      update: serviceData as any,
+      create: serviceData as any,
+    })
+    createdServices[service.slug] = service
+    console.log('✅ Service créé:', service.name)
+  }
+
+  // Création des plans pour chaque service
+  console.log('📋 Création des plans de services...')
+
+  const servicePlans = [
+    // Plans SOC
+    {
+      serviceSlug: 'soc',
+      name: 'PME',
+      slug: 'pme',
+      description: 'Surveillance SOC adaptée aux petites et moyennes entreprises',
+      features: JSON.stringify([
+        'Surveillance 24/7/365',
+        'Jusqu\'à 50 postes',
+        'Rapport mensuel',
+        'Support technique'
+      ]),
+      price: 250000, // 2500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'soc',
+      name: 'Entreprise',
+      slug: 'entreprise',
+      description: 'SOC complet pour les grandes entreprises',
+      features: JSON.stringify([
+        'Surveillance 24/7/365',
+        'Postes illimités',
+        'Rapport hebdomadaire',
+        'Support dédié',
+        'Threat intelligence'
+      ]),
+      price: 500000, // 5000€
+      popular: true,
+      recommended: false
+    },
+
+    // Plans Audit
+    {
+      serviceSlug: 'audit',
+      name: 'PME',
+      slug: 'pme',
+      description: 'Audit de sécurité pour PME (jusqu\'à 50 postes)',
+      features: JSON.stringify([
+        'Jusqu\'à 50 postes',
+        '2-3 jours sur site',
+        'Rapport exécutif',
+        'Plan d\'action prioritaire'
+      ]),
+      price: 250000, // 2500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'audit',
+      name: 'ETI',
+      slug: 'eti',
+      description: 'Audit de sécurité pour entreprises de taille intermédiaire',
+      features: JSON.stringify([
+        'Jusqu\'à 250 postes',
+        '5-7 jours sur site',
+        'Rapport détaillé',
+        'Suivi post-audit (3 mois)'
+      ]),
+      price: 590000, // 5900€
+      popular: true,
+      recommended: false
+    },
+
+    // Plans Pentest
+    {
+      serviceSlug: 'pentest',
+      name: 'Basique',
+      slug: 'basique',
+      description: 'Test de pénétration standard pour applications web',
+      features: JSON.stringify([
+        'Test application web',
+        'Rapport technique',
+        '1-2 applications',
+        'Support 30 jours'
+      ]),
+      price: 150000, // 1500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'pentest',
+      name: 'Avancé',
+      slug: 'avance',
+      description: 'Test complet infrastructure + applications',
+      features: JSON.stringify([
+        'Test infrastructure',
+        'Test applications',
+        'Rapport exécutif',
+        'Plan de remédiation',
+        'Support 60 jours'
+      ]),
+      price: 300000, // 3000€
+      popular: true,
+      recommended: false
+    },
+    {
+      serviceSlug: 'pentest',
+      name: 'Premium',
+      slug: 'premium',
+      description: 'Test avancé avec Red Team et social engineering',
+      features: JSON.stringify([
+        'Test infrastructure complet',
+        'Test applications',
+        'Red Team exercice',
+        'Social engineering',
+        'Rapport détaillé',
+        'Formation équipes',
+        'Support 90 jours'
+      ]),
+      price: 500000, // 5000€
+      popular: false,
+      recommended: false
+    },
+
+    // Plans Formation
+    {
+      serviceSlug: 'formation',
+      name: 'Sensibilisation',
+      slug: 'sensibilisation',
+      description: 'Formation de base en cybersécurité',
+      features: JSON.stringify([
+        'Module e-learning',
+        'Quiz d\'évaluation',
+        'Certificat',
+        'Jusqu\'à 50 participants'
+      ]),
+      price: 50000, // 500€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'formation',
+      name: 'Technique',
+      slug: 'technique',
+      description: 'Formation technique approfondie',
+      features: JSON.stringify([
+        'Formation présentiel/distanciel',
+        'Exercices pratiques',
+        'Support de cours',
+        'Jusqu\'à 20 participants',
+        'Suivi 3 mois'
+      ]),
+      price: 150000, // 1500€
+      popular: true,
+      recommended: false
+    },
+    {
+      serviceSlug: 'formation',
+      name: 'Expert',
+      slug: 'expert',
+      description: 'Formation d\'experts en cybersécurité',
+      features: JSON.stringify([
+        'Formation sur mesure',
+        'Certification incluse',
+        'Exercices Red Team',
+        'Jusqu\'à 10 participants',
+        'Suivi 6 mois'
+      ]),
+      price: 300000, // 3000€
+      popular: false,
+      recommended: false
+    },
+
+    // Plans Incident
+    {
+      serviceSlug: 'incident',
+      name: 'Investigation',
+      slug: 'investigation',
+      description: 'Investigation et analyse d\'incident',
+      features: JSON.stringify([
+        'Investigation forensique',
+        'Rapport d\'incident',
+        'Recommandations',
+        'Support 30 jours'
+      ]),
+      price: 300000, // 3000€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'incident',
+      name: 'Remédiation',
+      slug: 'remediation',
+      description: 'Gestion complète de l\'incident',
+      features: JSON.stringify([
+        'Investigation complète',
+        'Plan de remédiation',
+        'Mise en œuvre',
+        'Monitoring post-incident',
+        'Support 60 jours'
+      ]),
+      price: 500000, // 5000€
+      popular: true,
+      recommended: false
+    },
+    {
+      serviceSlug: 'incident',
+      name: 'Forensic',
+      slug: 'forensic',
+      description: 'Analyse forensique avancée avec expertise légale',
+      features: JSON.stringify([
+        'Analyse forensique complète',
+        'Expertise légale',
+        'Rapport tribunal',
+        'Témoignage expert',
+        'Support 90 jours'
+      ]),
+      price: 800000, // 8000€
+      popular: false,
+      recommended: false
+    }
+  ]
+
+  // Création des plans
+  for (const planData of servicePlans) {
+    const { serviceSlug, ...planInfo } = planData
+    const service = createdServices[serviceSlug]
+    
+    if (service) {
+      const plan = await (prisma as any).servicePlan.upsert({
+        where: { 
+          serviceId_slug: {
+            serviceId: service.id,
+            slug: planInfo.slug
+          }
+        },
+        update: {
+          ...planInfo,
+          serviceId: service.id
+        },
+        create: {
+          ...planInfo,
+          serviceId: service.id
+        },
+      })
+      console.log(`✅ Plan créé: ${service.name} - ${plan.name}`)
+    }
+  }
+
   console.log('🎉 Seed terminé avec succès!')
 }
 

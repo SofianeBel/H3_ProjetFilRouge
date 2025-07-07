@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "../styles/glassmorphism.css";
+import { AuthProvider } from "@/components/providers/auth-provider";
+import { MotionProvider } from "@/components/providers/motion-provider";
+import { CartProvider } from "@/context/CartContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,14 +70,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="fr" className="light">
       <body 
-        className={`${inter.variable} font-sans antialiased bg-[#111318] text-white min-h-screen`}
+        className={`${inter.variable} font-sans antialiased bg-white text-gray-900 min-h-screen`}
         style={{ fontFamily: "var(--font-inter), \"Noto Sans\", sans-serif" }}
       >
-        <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-          {children}
-        </div>
+        <MotionProvider>
+          <AuthProvider>
+            <CartProvider>
+              <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+                {children}
+              </div>
+            </CartProvider>
+          </AuthProvider>
+        </MotionProvider>
       </body>
     </html>
   );

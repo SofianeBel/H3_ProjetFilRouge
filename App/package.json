@@ -13,17 +13,27 @@
     "db:clean": "ts-node prisma/clean-db.ts"
   },
   "dependencies": {
+    "@auth/pg-adapter": "^1.9.1",
     "@auth/prisma-adapter": "^2.9.1",
+    "@capacitor/cli": "^7.3.0",
+    "@capacitor/core": "^7.3.0",
+    "@neondatabase/serverless": "^1.0.1",
+    "@prisma/adapter-neon": "^6.9.0",
     "@prisma/client": "^6.9.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.17.0",
+    "jose": "^6.0.11",
     "lucide-react": "^0.513.0",
     "next": "15.3.3",
-    "next-auth": "^4.24.11",
+    "next-auth": "^5.0.0-beta.28",
+    "pg": "^8.16.0",
+    "prisma": "^6.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^4.5.2",
+    "stripe": "^18.2.1",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.25.56"
@@ -39,5 +49,8 @@
     "prisma": "^6.9.0",
     "tailwindcss": "^4.1.8",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   }
 }
