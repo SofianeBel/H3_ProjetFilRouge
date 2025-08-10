@@ -19,6 +19,7 @@ import {
   BarChart3,
   Activity
 } from 'lucide-react'
+import AdminSalesChart from '@/components/admin/AdminSalesChart'
 
 /**
  * Interface pour les statistiques du dashboard
@@ -274,6 +275,11 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Graphiques */}
+        <div className="grid grid-cols-1 gap-6 mb-8">
+          <AdminSalesChart />
+        </div>
 
         {/* Actions rapides */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
