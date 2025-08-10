@@ -53,7 +53,13 @@ export default function CartPage() {
 
       const data = await response.json()
 
-      if (data.success && data.data.url) {
+      if (response.status === 401) {
+        // Rediriger vers la connexion si non authentifié
+        window.location.href = '/auth/login?callbackUrl=/cart'
+        return
+      }
+
+      if (data.success && data.data?.url) {
         // Redirection vers Stripe Checkout
         window.location.href = data.data.url
       } else {

@@ -30,8 +30,17 @@ const CheckoutRequestSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    // Récupération de la session utilisateur (optionnelle)
+    // Récupération de la session utilisateur (obligatoire pour checkout)
     const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Authentification requise pour procéder au paiement',
+        },
+        { status: 401 }
+      )
+    }
     
     // Validation du body de la requête
     const body = await request.json()
@@ -130,10 +139,8 @@ export async function POST(request: NextRequest) {
       })))
     }
 
-    // Ajout de l'userId si l'utilisateur est connecté
-    if (session?.user?.id) {
-      metadata.userId = session.user.id
-    }
+    // Ajout de l'userId (obligatoire désormais)
+    metadata.userId = session.user.id
 
     // URLs de redirection
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -153,7 +160,7 @@ export async function POST(request: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['FR', 'BE', 'CH', 'LU', 'MC']
       },
-      customer_email: session?.user?.email || undefined,
+      customer_email: session.user?.email || undefined,
       // Expire après 24h
       expires_at: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
     })
