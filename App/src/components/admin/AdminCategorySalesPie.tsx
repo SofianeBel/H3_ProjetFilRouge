@@ -110,7 +110,7 @@ export default function AdminCategorySalesPie() {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: any, name: string, p: any) => [formatEur(value as number), name]}
+                  formatter={(value: any, name: string) => [formatEur(value as number), name]}
                   labelFormatter={() => ''}
                 />
                 <Legend verticalAlign="bottom" height={24} />
