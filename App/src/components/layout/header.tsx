@@ -77,7 +77,8 @@ export function Header() {
               <Logo className="transition-transform group-hover:scale-105" />
               <h2 className={cn(
                 "text-2xl font-bold tracking-tight transition-colors duration-300",
-                isScrolled ? "text-gray-900" : "text-white"
+                // Contraste: texte foncé en permanence sur fond clair glass
+                "text-gray-900"
               )}>
                 Cyna
               </h2>
@@ -92,9 +93,10 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "transition-colors duration-300 hover:text-[#6366F1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2 rounded-md px-2 py-1",
+                  // Contraste: liens foncés même en haut
                   isScrolled 
                     ? "text-gray-700 hover:text-[#6366F1]" 
-                    : "text-gray-300 hover:text-white"
+                    : "text-gray-700 hover:text-[#6366F1]"
                 )}
               >
                 {item.name}
@@ -123,9 +125,10 @@ export function Header() {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className={cn(
                       "flex items-center gap-2 p-2 rounded-lg transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2",
+                      // Contraste: texte foncé + hover clair
                       isScrolled 
                         ? "text-gray-700 hover:bg-gray-100" 
-                        : "text-gray-300 hover:bg-[#292e38]"
+                        : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
                     <User className="h-5 w-5" />
@@ -196,7 +199,7 @@ export function Header() {
                     "rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2",
                     isScrolled 
                       ? "text-gray-700 hover:bg-gray-100" 
-                      : "text-gray-300 hover:bg-[#292e38]"
+                      : "text-gray-700 hover:bg-gray-100"
                   )}
                 >
                   Se connecter
@@ -244,7 +247,7 @@ export function Header() {
                 "md:hidden p-2 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1] focus-visible:ring-offset-2 rounded-md",
                 isScrolled 
                   ? "text-gray-700 hover:text-gray-900" 
-                  : "text-gray-300 hover:text-white"
+                  : "text-gray-700 hover:text-gray-900"
               )}
               aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             >
