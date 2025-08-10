@@ -134,10 +134,9 @@ export default function RegisterPage() {
       // Succès
       setSuccess(true)
       
-      // Indiquer à l'utilisateur de vérifier son email
-      // Redirection après 3 secondes vers la page de vérification d'email
+      // Indiquer à l'utilisateur de vérifier son email puis rediriger vers la connexion
       setTimeout(() => {
-        router.push('/auth/verify-email')
+        router.push('/auth/login?message=account-created-check-email')
       }, 3000)
 
     } catch (error) {
@@ -157,6 +156,7 @@ export default function RegisterPage() {
             <h2 className="text-2xl font-bold text-white mb-2">Compte créé !</h2>
             <p className="text-gray-400 mb-4">
               Un email de vérification vient de vous être envoyé. Veuillez cliquer sur le lien pour activer votre compte.
+              Vous allez être redirigé vers la page de connexion.
             </p>
             <div className="flex items-center justify-center gap-2 text-[#A67FFB]">
               <Loader2 className="h-4 w-4 animate-spin" />
