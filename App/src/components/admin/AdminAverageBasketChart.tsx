@@ -52,7 +52,7 @@ export default function AdminAverageBasketChart() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium text-gray-900">Panier moyen par jour</h2>
+        <h2 className="text-lg font-medium text-gray-900">Panier moyen jour</h2>
         <div className="flex gap-2">
           {(['7','30','90'] as const).map((val) => (
             <button
