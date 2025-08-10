@@ -81,6 +81,14 @@ export const {
             return null
           }
 
+          // Bloquer la connexion si l'email n'est pas vérifié
+          if (!user.emailVerified) {
+            console.log('❌ Email non vérifié pour', email)
+            // Retourner null pour bloquer la connexion côté serveur
+            // Le client affichera un message dédié après un pré‑check
+            return null
+          }
+
           // Vérifier le mot de passe
           const passwordMatch = await bcrypt.compare(password, user.password)
 

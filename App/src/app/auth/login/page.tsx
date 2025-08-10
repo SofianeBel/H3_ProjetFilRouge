@@ -47,6 +47,16 @@ function LoginForm() {
     setError('')
 
     try {
+      // Pré‑check : l'email est‑il vérifié ?
+      try {
+        await fetch(`/api/auth/verify-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email })
+        })
+        // L'API renvoie un message neutre; on continue sans en tenir compte
+      } catch {}
+
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -54,7 +64,7 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        setError('Email ou mot de passe incorrect')
+        setError('Vérifiez votre email (ou identifiants incorrects).')
       } else {
         // Redirection vers la page demandée ou l'accueil
         router.push(callbackUrl)
