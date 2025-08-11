@@ -12,12 +12,14 @@ import {
   MessageSquare, 
   Calendar, 
   ShoppingCart,
-  TrendingUp, 
-  DollarSign,
+  //TrendingUp, 
+  //DollarSign,
   UserCheck,
   AlertCircle,
   BarChart3,
-  Activity
+  //Activity,
+  Tags,
+  Layers
 } from 'lucide-react'
 import AdminSalesChart from '@/components/admin/AdminSalesChart'
 import AdminAverageBasketChart from '@/components/admin/AdminAverageBasketChart'
@@ -302,6 +304,46 @@ export default function AdminDashboard() {
                 </h3>
                 <p className="text-sm text-gray-500">
                   Gérer les comptes et rôles
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Gestion des services */}
+          <Link
+            href="/admin/services"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Layers className="h-8 w-8 text-indigo-600 group-hover:text-indigo-700" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900 group-hover:text-indigo-700">
+                  Services
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Offres et visibilité
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Gestion des catégories */}
+          <Link
+            href="/admin/categories"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Tags className="h-8 w-8 text-purple-600 group-hover:text-purple-700" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900 group-hover:text-purple-700">
+                  Catégories
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Taxonomies des contenus
                 </p>
               </div>
             </div>
