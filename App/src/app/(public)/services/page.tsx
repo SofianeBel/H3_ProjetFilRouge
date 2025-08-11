@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Shield, Eye, AlertTriangle, Users, CheckCircle, ArrowRight } from "lucide-react"
+import { Shield, Eye, AlertTriangle, Users, ArrowRight } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import type { LucideProps } from "lucide-react"
 import type { ComponentType } from "react"
