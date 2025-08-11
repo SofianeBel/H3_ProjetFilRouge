@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import AdminSalesChart from '@/components/admin/AdminSalesChart'
 import AdminAverageBasketChart from '@/components/admin/AdminAverageBasketChart'
+import AdminCategorySalesPie from '@/components/admin/AdminCategorySalesPie'
 
 /**
  * Interface pour les statistiques du dashboard
@@ -278,9 +279,10 @@ export default function AdminDashboard() {
         )}
 
         {/* Graphiques */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
           <AdminSalesChart />
           <AdminAverageBasketChart />
+          <AdminCategorySalesPie />
         </div>
 
         {/* Actions rapides */}
