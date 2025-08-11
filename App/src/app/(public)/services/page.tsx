@@ -1,69 +1,41 @@
 import Link from "next/link"
-import { Shield, Eye, AlertTriangle, Users, CheckCircle, ArrowRight } from "lucide-react"
+import { Shield, Eye, AlertTriangle, Users, ArrowRight } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import type { LucideProps } from "lucide-react"
+import type { ComponentType } from "react"
+
+// Map string icon names stored in DB to Lucide components
+const ICONS: Record<string, ComponentType<LucideProps>> = {
+  Eye,
+  Shield,
+  AlertTriangle,
+  Users,
+}
+
+function getIconComponent(name?: string | null): ComponentType<LucideProps> {
+  if (!name) return Shield
+  return ICONS[name] || Shield
+}
 
 /**
  * Page principale des services
  * Présente tous les services de cybersécurité de Cyna
  */
-export default function ServicesPage() {
-  const services = [
-    {
-      id: 'soc',
-      icon: Eye,
-      title: 'SOC 24/7',
-      subtitle: 'Security Operations Center',
-      description: 'Surveillance continue de votre infrastructure par nos experts certifiés. Détection et réponse aux incidents en temps réel.',
-      features: [
-        'Monitoring 24h/24, 7j/7',
-        'Analyse comportementale avancée',
-        'Réponse aux incidents sous 15 minutes',
-        'Rapports mensuels détaillés'
-      ],
-      color: 'from-blue-500 to-purple-600'
+export default async function ServicesPage() {
+  // Chargement des services publiés depuis la base
+  const services = await prisma.service.findMany({
+    where: { published: true },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      category: true,
+      icon: true,
+      color: true,
     },
-    {
-      id: 'audit',
-      icon: Shield,
-      title: 'Audit de Sécurité',
-      subtitle: 'Évaluation complète',
-      description: 'Analyse approfondie de votre posture de sécurité avec identification des vulnérabilités et plan d\'amélioration.',
-      features: [
-        'Audit technique complet',
-        'Analyse des configurations',
-        'Tests de conformité RGPD',
-        'Plan de remédiation prioritisé'
-      ],
-      color: 'from-green-500 to-blue-600'
-    },
-    {
-      id: 'pentest',
-      icon: AlertTriangle,
-      title: 'Tests d\'Intrusion',
-      subtitle: 'Pentest & Red Team',
-      description: 'Simulations d\'attaques réelles pour tester la robustesse de vos défenses et identifier les failles critiques.',
-      features: [
-        'Pentest applicatif & réseau',
-        'Tests d\'ingénierie sociale',
-        'Simulation d\'attaques avancées',
-        'Rapport exécutif & technique'
-      ],
-      color: 'from-red-500 to-orange-600'
-    },
-    {
-      id: 'cert',
-      icon: Users,
-      title: 'CERT',
-      subtitle: 'Computer Emergency Response Team',
-      description: 'Équipe spécialisée dans la réponse aux incidents de sécurité et la gestion de crise cyber.',
-      features: [
-        'Réponse d\'urgence 24h/7j',
-        'Investigation forensique',
-        'Containment et éradication',
-        'Accompagnement post-incident'
-      ],
-      color: 'from-purple-500 to-pink-600'
-    }
-  ]
+  })
 
   return (
     <div className="min-h-screen bg-[#111318]">
@@ -110,7 +82,8 @@ export default function ServicesPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {services.map((service) => {
-              const IconComponent = service.icon
+              const IconComponent = getIconComponent(service.icon)
+              const gradient = service.color || "from-blue-500 to-purple-600"
               return (
                 <div 
                   key={service.id}
@@ -118,33 +91,25 @@ export default function ServicesPage() {
                 >
                   {/* Header du service */}
                   <div className="flex items-center mb-6">
-                    <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${service.color} flex items-center justify-center mr-4`}>
+                    <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${gradient} flex items-center justify-center mr-4`}>
                       <IconComponent className="h-8 w-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white">{service.title}</h3>
-                      <p className="text-gray-400">{service.subtitle}</p>
+                      <h3 className="text-2xl font-bold text-white">{service.name}</h3>
+                      <p className="text-gray-400 capitalize">{service.category || "service"}</p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-300 mb-6 leading-relaxed">
-                    {service.description}
-                  </p>
-
-                  {/* Caractéristiques */}
-                  <div className="space-y-3 mb-8">
-                    {service.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-[#6B8DE5] mr-3 flex-shrink-0" />
-                        <span className="text-gray-300">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {service.description && (
+                    <p className="text-gray-300 mb-6 leading-relaxed">
+                      {service.description}
+                    </p>
+                  )}
 
                   {/* Lien vers le détail */}
                   <Link 
-                    href={`/services/${service.id}`}
+                    href={`/services/${service.slug}`}
                     className="inline-flex items-center text-[#6B8DE5] hover:text-[#A67FFB] font-semibold group-hover:translate-x-2 transition-all duration-300"
                   >
                     En savoir plus
@@ -153,6 +118,12 @@ export default function ServicesPage() {
                 </div>
               )
             })}
+
+            {services.length === 0 && (
+              <div className="col-span-1 lg:col-span-2 text-center text-gray-400">
+                Aucun service publié pour le moment.
+              </div>
+            )}
           </div>
         </div>
       </section>
