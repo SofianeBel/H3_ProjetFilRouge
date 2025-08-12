@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     const where: any = {}
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search } },
+        { slug: { contains: search } },
       ]
     }
     if (category) where.category = category
