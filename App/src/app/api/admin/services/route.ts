@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 
 const createServiceSchema = z.object({
   name: z.string().min(2),
@@ -38,8 +39,8 @@ export async function GET(request: NextRequest) {
     const where: any = {}
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search } },
+        { slug: { contains: search } },
       ]
     }
     if (category) where.category = category
@@ -107,28 +108,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Price required for PRE_CONFIGURED services' }, { status: 400 })
     }
 
-    // Slug unique
     const exists = await prisma.service.findUnique({ where: { slug: data.slug } })
     if (exists) {
       return NextResponse.json({ success: false, message: 'Slug already exists' }, { status: 409 })
     }
 
+    // Default content fallbacks
+    const defaultDescription = data.description ?? `Résumé de ${data.name} – personnalisez ce texte dans l'admin.`
+    const defaultLongMd = data.longDescription ?? `# ${data.name}\n\n## Pourquoi choisir ${data.name} ?\n- Avantage 1\n- Avantage 2\n- Avantage 3\n\n## Ce que nous proposons\n- Point A\n- Point B\n\n## Notre approche\n1. Étape 1\n2. Étape 2\n3. Étape 3\n`
+    const defaultIcon = data.icon ?? 'Shield'
+    const defaultGradient = data.color ?? 'from-blue-500 to-purple-600'
+
     const service = await prisma.service.create({
       data: {
         name: data.name,
         slug: data.slug,
-        description: data.description ?? undefined,
-        longDescription: data.longDescription ?? undefined,
-        category: data.category ?? undefined,
-        icon: data.icon ?? undefined,
-        color: data.color ?? undefined,
+        description: defaultDescription,
+        longDescription: defaultLongMd,
+        category: data.category ?? null,
+        icon: defaultIcon,
+        color: defaultGradient,
         purchaseType: data.purchaseType as any,
-        price: data.price ?? undefined,
+        price: data.price ?? null,
         currency: data.currency || 'eur',
         published: data.published,
         featured: data.featured,
       },
     })
+
+    // Revalidate list and service detail page
+    revalidatePath('/services')
+    revalidatePath(`/services/${service.slug}`)
 
     return NextResponse.json({ success: true, service })
   } catch (error) {
