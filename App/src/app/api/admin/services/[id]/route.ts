@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 
 const updateServiceSchema = z.object({
   name: z.string().min(2).optional(),
@@ -58,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ success: false, message: 'Price required for PRE_CONFIGURED services' }, { status: 400 })
     }
 
-    const service = await prisma.service.update({
+    const updated = await prisma.service.update({
       where: { id: params.id },
       data: {
         ...('name' in data ? { name: data.name! } : {}),
@@ -75,7 +76,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     })
 
-    return NextResponse.json({ success: true, service })
+    // Revalidate list and detail
+    revalidatePath('/services')
+    revalidatePath(`/services/${updated.slug}`)
+
+    return NextResponse.json({ success: true, service: updated })
   } catch (error) {
     console.error('Erreur PATCH service:', error)
     return NextResponse.json({ success: false, message: 'Erreur serveur' }, { status: 500 })
@@ -89,13 +94,19 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ success: false, message: 'Accès non autorisé' }, { status: 403 })
     }
 
-    // Garde simple: refuser la suppression si des plans sont associés
+    const existing = await prisma.service.findUnique({ where: { id: params.id }, select: { slug: true } })
+
     const plansCount = await prisma.servicePlan.count({ where: { serviceId: params.id } })
     if (plansCount > 0) {
       return NextResponse.json({ success: false, message: 'Cannot delete a service with existing plans' }, { status: 409 })
     }
 
     await prisma.service.delete({ where: { id: params.id } })
+
+    // Revalidate list and (old) detail
+    revalidatePath('/services')
+    if (existing?.slug) revalidatePath(`/services/${existing.slug}`)
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Erreur DELETE service:', error)
