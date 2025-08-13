@@ -1,69 +1,47 @@
+'use client'
+
 import Link from "next/link"
-import { Shield, Eye, AlertTriangle, Users, CheckCircle, ArrowRight } from "lucide-react"
+import { ArrowRight, RefreshCw } from "lucide-react"
+import { useState } from "react"
+
+// Composants de recherche et filtres
+import { SearchBar } from "@/components/ui/search-bar"
+import { Filters } from "@/components/ui/filters"
+import { MobileFilters } from "@/components/ui/mobile-filters"
+import { ServicesGrid } from "@/components/ui/services-grid"
+import { useServicesSearch } from "@/hooks/use-services-search"
 
 /**
- * Page principale des services
- * Présente tous les services de cybersécurité de Cyna
+ * Page principale des services avec recherche et filtres
+ * Implémente les user stories 3.a à 3.e
  */
 export default function ServicesPage() {
-  const services = [
-    {
-      id: 'soc',
-      icon: Eye,
-      title: 'SOC 24/7',
-      subtitle: 'Security Operations Center',
-      description: 'Surveillance continue de votre infrastructure par nos experts certifiés. Détection et réponse aux incidents en temps réel.',
-      features: [
-        'Monitoring 24h/24, 7j/7',
-        'Analyse comportementale avancée',
-        'Réponse aux incidents sous 15 minutes',
-        'Rapports mensuels détaillés'
-      ],
-      color: 'from-blue-500 to-purple-600'
-    },
-    {
-      id: 'audit',
-      icon: Shield,
-      title: 'Audit de Sécurité',
-      subtitle: 'Évaluation complète',
-      description: 'Analyse approfondie de votre posture de sécurité avec identification des vulnérabilités et plan d\'amélioration.',
-      features: [
-        'Audit technique complet',
-        'Analyse des configurations',
-        'Tests de conformité RGPD',
-        'Plan de remédiation prioritisé'
-      ],
-      color: 'from-green-500 to-blue-600'
-    },
-    {
-      id: 'pentest',
-      icon: AlertTriangle,
-      title: 'Tests d\'Intrusion',
-      subtitle: 'Pentest & Red Team',
-      description: 'Simulations d\'attaques réelles pour tester la robustesse de vos défenses et identifier les failles critiques.',
-      features: [
-        'Pentest applicatif & réseau',
-        'Tests d\'ingénierie sociale',
-        'Simulation d\'attaques avancées',
-        'Rapport exécutif & technique'
-      ],
-      color: 'from-red-500 to-orange-600'
-    },
-    {
-      id: 'cert',
-      icon: Users,
-      title: 'CERT',
-      subtitle: 'Computer Emergency Response Team',
-      description: 'Équipe spécialisée dans la réponse aux incidents de sécurité et la gestion de crise cyber.',
-      features: [
-        'Réponse d\'urgence 24h/7j',
-        'Investigation forensique',
-        'Containment et éradication',
-        'Accompagnement post-incident'
-      ],
-      color: 'from-purple-500 to-pink-600'
-    }
-  ]
+  // Hook personnalisé pour la gestion de la recherche et des filtres
+  const {
+    services,
+    metadata,
+    loading,
+    error,
+    filters,
+    updateSearch,
+    updateCategory,
+    updatePriceRange,
+    updateFeatured,
+    updateSort,
+    resetFilters,
+    search,
+    refresh
+  } = useServicesSearch()
+
+  // Calcul du nombre de filtres actifs pour l'affichage mobile
+  const activeFiltersCount = [
+    filters.search && filters.search.trim(),
+    filters.category !== 'all',
+    filters.featured,
+    filters.minPrice !== undefined,
+    filters.maxPrice !== undefined,
+    filters.sortBy !== 'featured' || filters.sortOrder !== 'desc'
+  ].filter(Boolean).length
 
   return (
     <div className="min-h-screen bg-[#111318]">
@@ -80,13 +58,13 @@ export default function ServicesPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/contact"
+              href="/booking"
               className="btn-primary"
             >
               Audit gratuit
             </Link>
             <Link 
-              href="#services-details"
+              href="#services-search"
               className="inline-flex items-center px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-[#8E63E5] transition-colors"
             >
               Découvrir nos services
@@ -96,63 +74,130 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* Services détaillés */}
-      <section id="services-details" className="py-24 bg-[#111318]">
+      {/* Section de recherche et filtres */}
+      <section id="services-search" className="py-16 bg-[#111318]">
         <div className="container-cyna">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Excellence technique, expertise française
-            </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Chaque service est conçu pour répondre aux défis spécifiques de la cybersécurité moderne
-            </p>
+          {/* En-tête avec résultats */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Trouvez le Service Idéal
+              </h2>
+              <div className="flex items-center gap-4 text-gray-400">
+                {loading ? (
+                  <span>Recherche en cours...</span>
+                ) : metadata ? (
+                  <>
+                    <span>{metadata.totalCount} services disponibles</span>
+                    {(filters.search || filters.category !== 'all' || filters.featured || filters.minPrice || filters.maxPrice) && (
+                      <span className="text-[#6B8DE5]">
+                        (avec filtres appliqués)
+                      </span>
+                    )}
+                  </>
+                ) : null}
+              </div>
+            </div>
+            
+            {/* Actions */}
+            <div className="flex items-center gap-3 mt-4 lg:mt-0">
+              {error && (
+                <button
+                  onClick={refresh}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Réessayer
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {services.map((service) => {
-              const IconComponent = service.icon
-              return (
-                <div 
-                  key={service.id}
-                  className="group bg-[#1A1F28] rounded-2xl p-8 border border-gray-700 hover:border-[#6B8DE5] transition-all duration-300 hover:transform hover:scale-105"
-                >
-                  {/* Header du service */}
-                  <div className="flex items-center mb-6">
-                    <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${service.color} flex items-center justify-center mr-4`}>
-                      <IconComponent className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-white">{service.title}</h3>
-                      <p className="text-gray-400">{service.subtitle}</p>
-                    </div>
-                  </div>
+          {/* Barre de recherche */}
+          <div className="mb-6">
+            <SearchBar
+              value={filters.search}
+              onChange={updateSearch}
+              onSearch={search}
+              placeholder="Recherchez parmi nos services de cybersécurité..."
+              className="w-full"
+              showRecentSearches={true}
+            />
+          </div>
 
-                  {/* Description */}
-                  <p className="text-gray-300 mb-6 leading-relaxed">
-                    {service.description}
-                  </p>
+          {/* Filtres mobiles */}
+          <div className="mb-8 lg:hidden">
+            <MobileFilters
+              categories={metadata?.categories || []}
+              selectedCategory={filters.category}
+              onCategoryChange={updateCategory}
+              priceRange={metadata?.priceRange || { min: 0, max: 0 }}
+              selectedPriceRange={{
+                min: filters.minPrice,
+                max: filters.maxPrice
+              }}
+              onPriceRangeChange={updatePriceRange}
+              showFeaturedOnly={filters.featured}
+              onFeaturedChange={updateFeatured}
+              sortBy={filters.sortBy}
+              sortOrder={filters.sortOrder}
+              onSortChange={updateSort}
+              filtersCount={activeFiltersCount}
+            />
+          </div>
 
-                  {/* Caractéristiques */}
-                  <div className="space-y-3 mb-8">
-                    {service.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-[#6B8DE5] mr-3 flex-shrink-0" />
-                        <span className="text-gray-300">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
+          {/* Contenu principal avec sidebar de filtres */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar des filtres (desktop uniquement) */}
+            <div className="hidden lg:block lg:col-span-1">
+              <Filters
+                categories={metadata?.categories || []}
+                selectedCategory={filters.category}
+                onCategoryChange={updateCategory}
+                priceRange={metadata?.priceRange || { min: 0, max: 0 }}
+                selectedPriceRange={{
+                  min: filters.minPrice,
+                  max: filters.maxPrice
+                }}
+                onPriceRangeChange={updatePriceRange}
+                showFeaturedOnly={filters.featured}
+                onFeaturedChange={updateFeatured}
+                sortBy={filters.sortBy}
+                sortOrder={filters.sortOrder}
+                onSortChange={updateSort}
+                isMobile={false}
+                className="sticky top-8"
+              />
+            </div>
 
-                  {/* Lien vers le détail */}
-                  <Link 
-                    href={`/services/${service.id}`}
-                    className="inline-flex items-center text-[#6B8DE5] hover:text-[#A67FFB] font-semibold group-hover:translate-x-2 transition-all duration-300"
+            {/* Grille des résultats */}
+            <div className="col-span-1 lg:col-span-3">
+              {error ? (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-4">⚠️</div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Erreur de chargement
+                  </h3>
+                  <p className="text-gray-400 mb-6">{error}</p>
+                  <button
+                    onClick={refresh}
+                    className="btn-primary"
                   >
-                    En savoir plus
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
+                    Réessayer
+                  </button>
                 </div>
-              )
-            })}
+              ) : (
+                <ServicesGrid
+                  services={services}
+                  loading={loading}
+                  emptyMessage={
+                    filters.search || filters.category !== 'all' || filters.featured || filters.minPrice || filters.maxPrice
+                      ? "Aucun service ne correspond à vos critères"
+                      : "Aucun service disponible"
+                  }
+                />
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -215,7 +260,7 @@ export default function ServicesPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/contact"
+              href="/booking"
               className="inline-flex items-center px-8 py-4 bg-white text-[#8E63E5] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
             >
               Demander un audit gratuit

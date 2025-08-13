@@ -14,6 +14,48 @@ const nextConfig = {
   // Optimisations de build
   poweredByHeader: false,
   reactStrictMode: true,
+  
+  // Configuration PWA et Service Worker
+  experimental: {
+    // Optimisations pour les service workers
+    swcPlugins: []
+  },
+  
+  // Headers de sécurité et optimisation
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          },
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/'
+          }
+        ]
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          }
+        ]
+      }
+    ];
+  },
   // Configuration des images pour autoriser les domaines externes
   images: {
     domains: [

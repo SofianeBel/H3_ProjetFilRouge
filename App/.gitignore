@@ -87,5 +87,76 @@ Desktop.ini
 *.p12
 *.pfx
 
+# Fichiers de configuration
+.env
+.env.local
+.env.development
+.env.production
+
+dev.db
+
 # Rapports et documentation générés automatiquement
 /documentation/generated/
+
+# Next.js cache et build supplémentaires
+.next/cache/
+.next/trace
+.next/types/
+.next/static/
+.next/server/
+
+# TypeScript build info
+*.tsbuildinfo
+.tsbuildinfo
+
+# ESLint cache
+.eslintcache
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Storybook
+storybook-static/
+
+# Tailwind CSS
+.tailwindcss
+
+# NextAuth.js
+.nextauth/
+
+# Stripe CLI
+.stripe/
+
+# Auth et session temporaires
+.auth/
+
+# Capacitor (mobile)
+/android/
+/ios/
+/dist/
+capacitor.config.ts.bak
+
+# Fichiers de backup et temporaires
+*.bak
+*.backup
+*.orig
+*.rej
+*~
+.#*
+\#*#
+
+# Logs système et runtime
+*.log
+*.out
+*.err
+
+# Coverage et tests
+coverage/
+.nyc_output/
+junit.xml
+*.lcov
+
+# Hot reload et HMR
+.hot-update.*

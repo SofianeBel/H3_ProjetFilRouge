@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { User, Shield, Eye, AlertTriangle, Download, Trash2, Save, Key } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { User, Shield, Eye, AlertTriangle, Download, Trash2, Save, Key, Package } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { signOut } from 'next-auth/react'
+import OrderHistory from '@/components/ui/order-history'
 
 /**
  * Interface pour les données utilisateur
@@ -62,7 +64,6 @@ export default function ProfilePage() {
   const { user, isLoading } = useAuth()
   const [activeTab, setActiveTab] = useState('personal')
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   
   // États pour les formulaires
   const [personalForm, setPersonalForm] = useState({
@@ -83,16 +84,7 @@ export default function ProfilePage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [messages, setMessages] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
-  /**
-   * Chargement des données profil
-   */
-  useEffect(() => {
-    if (user) {
-      loadProfile()
-    }
-  }, [user])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const response = await fetch('/api/profile')
       const data = await response.json()
@@ -114,12 +106,19 @@ export default function ProfilePage() {
       } else {
         showMessage('error', 'Impossible de charger le profil')
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur réseau')
-    } finally {
-      setIsLoadingProfile(false)
     }
-  }
+  }, [])
+
+  /**
+   * Chargement des données profil
+   */
+  useEffect(() => {
+    if (user) {
+      loadProfile()
+    }
+  }, [user, loadProfile])
 
   /**
    * Affichage des messages
@@ -157,7 +156,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la mise à jour')
     } finally {
       setIsSaving(false)
@@ -206,7 +205,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la mise à jour')
     } finally {
       setIsSaving(false)
@@ -240,7 +239,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la mise à jour')
     } finally {
       setIsSaving(false)
@@ -275,7 +274,7 @@ export default function ProfilePage() {
         const data = await response.json()
         showMessage('error', data.message || 'Erreur lors de l\'export')
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de l\'export')
     } finally {
       setIsExporting(false)
@@ -306,7 +305,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la suppression')
     }
 
@@ -362,6 +361,7 @@ export default function ProfilePage() {
               <nav className="flex space-x-8 px-6">
                 {[
                   { id: 'personal', label: 'Informations personnelles', icon: User },
+                  { id: 'orders', label: 'Historique des commandes', icon: Package },
                   { id: 'security', label: 'Sécurité', icon: Shield },
                   { id: 'privacy', label: 'Confidentialité', icon: Eye },
                   { id: 'danger', label: 'Zone de danger', icon: AlertTriangle }
@@ -428,7 +428,9 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Commandes :</span>
-                            <span className="ml-2 font-medium">{profile._count.orders}</span>
+                            <Link href="/orders" className="ml-2 font-medium text-[#6B8DE5] hover:text-[#5A7BD4]">
+                              {profile._count.orders}
+                            </Link>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles :</span>
@@ -452,6 +454,11 @@ export default function ProfilePage() {
                     <span>{isSaving ? 'Enregistrement...' : 'Enregistrer'}</span>
                   </button>
                 </form>
+              )}
+
+              {/* Onglet Historique des commandes */}
+              {activeTab === 'orders' && (
+                <OrderHistory />
               )}
 
               {/* Onglet Sécurité */}

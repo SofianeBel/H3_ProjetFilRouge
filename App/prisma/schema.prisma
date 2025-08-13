@@ -159,6 +159,10 @@ model User {
   blogPosts     BlogPost[]
   orders        Order[]   // Relation vers les commandes
   
+  // Relations paiement et livraison
+  addresses       UserAddress[]
+  paymentMethods  UserPaymentMethod[]
+  
   // Relations RGPD
   consentRecords   DataProcessingConsent[]
   exportRequests   DataExportRequest[]
@@ -427,8 +431,101 @@ model Order {
   currency              String    @default("eur")
   status                String              // paid, refunded, pending, failed, etc.
   metadata              Json?               // Métadonnées extensibles
+  
+  // Nouvelles relations pour les addresses et méthodes de paiement
+  billingAddressId      String?
+  billingAddress        UserAddress? @relation("OrderBillingAddress", fields: [billingAddressId], references: [id], onDelete: SetNull)
+  shippingAddressId     String?
+  shippingAddress       UserAddress? @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id], onDelete: SetNull)
+  paymentMethodId       String?
+  paymentMethod         UserPaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@map("orders")
+}
+
+// Modèle pour les adresses utilisateur
+model UserAddress {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Informations d'adresse
+  type          AddressType @default(BILLING) // BILLING, SHIPPING, BOTH
+  label         String?     // Ex: "Domicile", "Bureau", "Livraison"
+  company       String?
+  firstName     String
+  lastName      String
+  addressLine1  String
+  addressLine2  String?
+  city          String
+  postalCode    String
+  region        String?     // État/Région
+  country       String      @default("FR")
+  phone         String?
+  
+  // Métadonnées
+  isDefault     Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  
+  // Relations inverses
+  billingOrders  Order[] @relation("OrderBillingAddress")
+  shippingOrders Order[] @relation("OrderShippingAddress")
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("user_addresses")
+}
+
+// Modèle pour les méthodes de paiement utilisateur
+model UserPaymentMethod {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Type de méthode de paiement
+  type            PaymentMethodType
+  label           String?   // Ex: "Carte principale", "PayPal pro"
+  
+  // Données spécifiques selon le type
+  // Pour les cartes (CARD)
+  cardLastFour    String?   // 4 derniers chiffres
+  cardBrand       String?   // visa, mastercard, amex
+  cardExpMonth    Int?
+  cardExpYear     Int?
+  
+  // Pour Stripe
+  stripePaymentMethodId String? @unique
+  
+  // Pour PayPal
+  paypalEmail     String?
+  
+  // Métadonnées
+  isDefault       Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  
+  // Relations
+  orders          Order[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("user_payment_methods")
+}
+
+// Énumérations pour les adresses et paiements
+enum AddressType {
+  BILLING
+  SHIPPING
+  BOTH
+}
+
+enum PaymentMethodType {
+  CARD
+  PAYPAL
+  BANK_TRANSFER
+  SEPA
 }

@@ -81,12 +81,17 @@ export const {
             return null
           }
 
-          // Bloquer la connexion si l'email n'est pas vérifié
-          if (!user.emailVerified) {
+          // Bloquer la connexion si l'email n'est pas vérifié (DÉSACTIVÉ POUR TESTS)
+          if (!user.emailVerified && process.env.NODE_ENV === 'production') {
             console.log('❌ Email non vérifié pour', email)
             // Retourner null pour bloquer la connexion côté serveur
             // Le client affichera un message dédié après un pré‑check
             return null
+          }
+          
+          // En développement, autoriser la connexion même sans email vérifié
+          if (!user.emailVerified) {
+            console.log('⚠️ Email non vérifié pour', email, '- AUTORISÉ EN DÉVELOPPEMENT')
           }
 
           // Vérifier le mot de passe

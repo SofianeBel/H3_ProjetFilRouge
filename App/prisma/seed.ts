@@ -608,6 +608,173 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
       category: 'Conformité',
       icon: 'FileCheck',
       color: 'from-emerald-500 to-teal-600'
+    },
+    // Services supplémentaires pour tester les filtres
+    {
+      name: 'Sauvegardes Sécurisées',
+      slug: 'backup',
+      description: 'Solution de sauvegarde sécurisée avec chiffrement et restauration rapide.',
+      longDescription: `
+        ## Sauvegardes Sécurisées
+        
+        Solution complète de sauvegarde avec chiffrement de bout en bout.
+        
+        ### Fonctionnalités
+        - Sauvegarde automatique quotidienne
+        - Chiffrement AES-256
+        - Stockage redondant multi-sites
+        - Restauration en un clic
+        - Monitoring continu
+        
+        ### Avantages
+        - RTO < 4 heures
+        - RPO < 1 heure
+        - Conformité réglementaire
+        - Support 24/7
+      `,
+      price: 15000, // 150€
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Infrastructure',
+      icon: 'HardDrive',
+      color: 'from-blue-500 to-cyan-600'
+    },
+    {
+      name: 'Firewall Managé',
+      slug: 'firewall',
+      description: 'Service de pare-feu managé avec configuration et monitoring en continu.',
+      longDescription: `
+        ## Firewall Managé
+        
+        Gestion complète de votre pare-feu par nos experts.
+        
+        ### Services inclus
+        - Configuration initiale
+        - Monitoring 24/7
+        - Mises à jour automatiques
+        - Analyse du trafic
+        - Rapports de sécurité
+        
+        ### Garanties
+        - Disponibilité 99.9%
+        - Temps de réponse < 1h
+        - Support expert inclus
+        - Maintenance préventive
+      `,
+      price: 45000, // 450€
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Infrastructure',
+      icon: 'Shield',
+      color: 'from-green-500 to-emerald-600'
+    },
+    {
+      name: 'Analyse de Malware',
+      slug: 'malware-analysis',
+      description: 'Service d\'analyse approfondie de malwares et fichiers suspects.',
+      longDescription: `
+        ## Analyse de Malware
+        
+        Analyse complète de fichiers suspects et malwares.
+        
+        ### Techniques d'analyse
+        - Analyse statique avancée
+        - Sandboxing sécurisé
+        - Reverse engineering
+        - Intelligence artificielle
+        - Corrélation avec CTI
+        
+        ### Livrables
+        - Rapport d'analyse détaillé
+        - IOCs et signatures
+        - Recommandations de défense
+        - Briefing technique
+      `,
+      price: 80000, // 800€
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: true,
+      category: 'Analyse',
+      icon: 'Bug',
+      color: 'from-red-500 to-pink-600'
+    },
+    {
+      name: 'VPN Entreprise',
+      slug: 'vpn-enterprise',
+      description: 'Solution VPN d\'entreprise sécurisée pour le télétravail et les déplacements.',
+      longDescription: `
+        ## VPN Entreprise
+        
+        Solution VPN haut de gamme pour votre entreprise.
+        
+        ### Caractéristiques
+        - Chiffrement militaire
+        - Authentification multi-facteurs
+        - Bande passante illimitée
+        - Serveurs dédiés
+        - Zero-log policy
+        
+        ### Gestion centralisée
+        - Console d'administration
+        - Politique de sécurité
+        - Monitoring des connexions
+        - Rapports d'usage
+      `,
+      price: 2500, // 25€
+      currency: 'eur',
+      purchaseType: 'PRE_CONFIGURED',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Infrastructure',
+      icon: 'Lock',
+      color: 'from-indigo-500 to-blue-600'
+    },
+    {
+      name: 'Consulting Stratégique',
+      slug: 'strategy-consulting',
+      description: 'Conseil stratégique en cybersécurité pour transformer votre approche sécuritaire.',
+      longDescription: `
+        ## Consulting Stratégique
+        
+        Accompagnement stratégique pour votre transformation cyber.
+        
+        ### Domaines d'expertise
+        - Stratégie de cybersécurité
+        - Gouvernance et risk management
+        - Architecture sécurisée
+        - Transformation digitale sécurisée
+        - Roadmap technologique
+        
+        ### Méthodologie
+        - Assessment initial
+        - Définition de la vision
+        - Élaboration de la stratégie
+        - Plan de mise en œuvre
+        - Accompagnement au changement
+      `,
+      price: null,
+      currency: 'eur',
+      purchaseType: 'QUOTE',
+      stripeProductId: null,
+      stripePriceId: null,
+      published: true,
+      featured: false,
+      category: 'Conseil',
+      icon: 'TrendingUp',
+      color: 'from-purple-500 to-violet-600'
     }
   ]
 
@@ -837,6 +1004,142 @@ Chez Cyna, nous nous engageons sur des indicateurs précis : MTTD < 10 minutes, 
         'Support 90 jours'
       ]),
       price: 800000, // 8000€
+      popular: false,
+      recommended: false
+    },
+
+    // Plans pour les nouveaux services
+    // Plans Backup
+    {
+      serviceSlug: 'backup',
+      name: 'Starter',
+      slug: 'starter',
+      description: 'Solution de sauvegarde pour petites structures',
+      features: JSON.stringify([
+        'Sauvegarde quotidienne',
+        'Jusqu\'à 100 GB',
+        'Rétention 30 jours',
+        'Support email'
+      ]),
+      price: 9900, // 99€
+      popular: false,
+      recommended: false
+    },
+    {
+      serviceSlug: 'backup',
+      name: 'Professional',
+      slug: 'professional',
+      description: 'Solution complète pour entreprises',
+      features: JSON.stringify([
+        'Sauvegarde temps réel',
+        'Jusqu\'à 1 TB',
+        'Rétention 90 jours',
+        'Support prioritaire',
+        'Restauration express'
+      ]),
+      price: 19900, // 199€
+      popular: true,
+      recommended: true
+    },
+    {
+      serviceSlug: 'backup',
+      name: 'Enterprise',
+      slug: 'enterprise',
+      description: 'Solution haute disponibilité',
+      features: JSON.stringify([
+        'Sauvegarde continue',
+        'Stockage illimité',
+        'Rétention personnalisée',
+        'Support 24/7',
+        'SLA 99.9%',
+        'Multi-sites'
+      ]),
+      price: 49900, // 499€
+      popular: false,
+      recommended: false
+    },
+
+    // Plans Firewall
+    {
+      serviceSlug: 'firewall',
+      name: 'PME',
+      slug: 'pme-firewall',
+      description: 'Firewall managé pour PME',
+      features: JSON.stringify([
+        'Configuration initiale',
+        'Monitoring 24/7',
+        'Jusqu\'à 50 utilisateurs',
+        'Rapport mensuel',
+        'Support technique'
+      ]),
+      price: 29900, // 299€
+      popular: false,
+      recommended: true
+    },
+    {
+      serviceSlug: 'firewall',
+      name: 'Business',
+      slug: 'business-firewall',
+      description: 'Solution firewall avancée',
+      features: JSON.stringify([
+        'Configuration avancée',
+        'Monitoring temps réel',
+        'Jusqu\'à 200 utilisateurs',
+        'IPS/IDS intégré',
+        'Rapport hebdomadaire',
+        'Support prioritaire'
+      ]),
+      price: 59900, // 599€
+      popular: true,
+      recommended: false
+    },
+
+    // Plans VPN
+    {
+      serviceSlug: 'vpn-enterprise',
+      name: 'Small Team',
+      slug: 'small-team',
+      description: 'VPN pour petites équipes',
+      features: JSON.stringify([
+        'Jusqu\'à 10 utilisateurs',
+        'Serveurs dédiés',
+        'Support par email',
+        'Bande passante 1 Gbps'
+      ]),
+      price: 1900, // 19€
+      popular: false,
+      recommended: false
+    },
+    {
+      serviceSlug: 'vpn-enterprise',
+      name: 'Business',
+      slug: 'business-vpn',
+      description: 'VPN pour entreprises',
+      features: JSON.stringify([
+        'Jusqu\'à 100 utilisateurs',
+        'Serveurs haute performance',
+        'Support prioritaire',
+        'Bande passante 10 Gbps',
+        'Monitoring avancé'
+      ]),
+      price: 4900, // 49€
+      popular: true,
+      recommended: true
+    },
+    {
+      serviceSlug: 'vpn-enterprise',
+      name: 'Enterprise',
+      slug: 'enterprise-vpn',
+      description: 'VPN enterprise avec SLA',
+      features: JSON.stringify([
+        'Utilisateurs illimités',
+        'Infrastructure dédiée',
+        'Support 24/7',
+        'Bande passante illimitée',
+        'SLA 99.99%',
+        'API management'
+      ]),
+      price: 19900, // 199€
       popular: false,
       recommended: false
     }
