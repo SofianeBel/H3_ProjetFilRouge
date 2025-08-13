@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, {  }: { params: { id: string } }) {
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder()
