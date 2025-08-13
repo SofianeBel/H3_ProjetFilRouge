@@ -28,6 +28,9 @@ model Contact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relations
+  conversations Conversation[]
+
   @@map("contacts")
 }
 
@@ -163,6 +166,10 @@ model User {
   consentRecords   DataProcessingConsent[]
   exportRequests   DataExportRequest[]
   authLogs         AuthenticationLog[]
+
+  // Chat relations
+  assignedConversations Conversation[] @relation("AssignedToUser")
+  sentMessages          Message[]      @relation("MessageSenderUser")
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -431,4 +438,46 @@ model Order {
   updatedAt             DateTime  @updatedAt
 
   @@map("orders")
+}
+
+// Chat – Conversations entre admin et contact
+model Conversation {
+  id               String              @id @default(cuid())
+  contactId        String?
+  contact          Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  status           ConversationStatus  @default(OPEN)
+  assignedToUserId String?
+  assignedTo       User?               @relation("AssignedToUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  lastMessageAt    DateTime?
+  messages         Message[]
+
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([status, lastMessageAt])
+  @@map("chat_conversations")
+}
+
+model Message {
+  id              String             @id @default(cuid())
+  conversationId  String
+  conversation    Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType      MessageSenderType
+  senderUserId    String?
+  senderUser      User?              @relation("MessageSenderUser", fields: [senderUserId], references: [id], onDelete: SetNull)
+  content         String
+  createdAt       DateTime           @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum MessageSenderType {
+  ADMIN
+  CONTACT
 }
