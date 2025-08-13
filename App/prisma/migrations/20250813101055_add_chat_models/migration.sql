@@ -15,8 +15,10 @@ CREATE TABLE "chat_conversations" (
     "lastMessageAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "chat_conversations_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "contacts" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "chat_conversations_assignedToUserId_fkey" FOREIGN KEY ("assignedToUserId") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "chat_conversations_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "contacts" ("id")
+    ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "chat_conversations_assignedToUserId_fkey" FOREIGN KEY ("assignedToUserId") REFERENCES "users" ("id")
+    ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -27,8 +29,10 @@ CREATE TABLE "chat_messages" (
     "senderUserId" TEXT,
     "content" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "chat_messages_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "chat_conversations" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "chat_messages_senderUserId_fkey" FOREIGN KEY ("senderUserId") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "chat_messages_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "chat_conversations" ("id")
+    ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "chat_messages_senderUserId_fkey" FOREIGN KEY ("senderUserId") REFERENCES "users" ("id")
+    ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- RedefineTables
