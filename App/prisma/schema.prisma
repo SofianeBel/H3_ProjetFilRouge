@@ -450,6 +450,8 @@ model Conversation {
   assignedTo       User?               @relation("AssignedToUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   lastMessageAt    DateTime?
   messages         Message[]
+  visitorId        String?
+  visitor          Visitor?            @relation(fields: [visitorId], references: [id], onDelete: SetNull)
 
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
@@ -466,6 +468,7 @@ model Message {
   senderUserId    String?
   senderUser      User?              @relation("MessageSenderUser", fields: [senderUserId], references: [id], onDelete: SetNull)
   content         String
+  attachments     Json?
   createdAt       DateTime           @default(now())
 
   @@index([conversationId, createdAt])
@@ -477,7 +480,20 @@ enum ConversationStatus {
   CLOSED
 }
 
+// Public visitor (widget)
+model Visitor {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String?
+  fingerprint  String?
+  createdAt    DateTime @default(now())
+  conversations Conversation[]
+
+  @@map("chat_visitors")
+}
+
 enum MessageSenderType {
   ADMIN
-  CONTACT
+  VISITOR
+  BOT
 }
