@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { isRateLimited, recordAttempt, getClientIP } from '@/lib/rate-limit'
+import { publish } from '@/lib/pubsub'
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -62,6 +63,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       where: { id: params.id },
       data: { lastMessageAt: created.createdAt },
     })
+
+    publish(`chat:${params.id}`, { type: 'message', payload: { id: created.id, content: created.content, senderType: created.senderType, createdAt: created.createdAt } })
 
     recordAttempt(`chat-admin:${ip}`, true)
 
