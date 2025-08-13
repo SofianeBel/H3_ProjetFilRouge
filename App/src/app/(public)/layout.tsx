@@ -4,6 +4,7 @@
  * Exclut /admin et /auth qui ont leurs propres layouts
  */
 
+import ChatWidget from "@/components/chat/Widget"
 import { PublicLayout } from "@/components/layout/public-layout"
 
 export default function PublicGroupLayout({
@@ -14,6 +15,7 @@ export default function PublicGroupLayout({
   return (
     <PublicLayout>
       {children}
+      <ChatWidget />
     </PublicLayout>
   )
 } 
