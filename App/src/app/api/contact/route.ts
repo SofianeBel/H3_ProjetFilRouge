@@ -41,6 +41,32 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Création automatique d'une conversation et du message initial
+    ;(async () => {
+      try {
+        const conversation = await prisma.conversation.create({
+          data: {
+            contactId: contact.id,
+            status: 'OPEN',
+            lastMessageAt: new Date(),
+          },
+        })
+        const msg = await prisma.message.create({
+          data: {
+            conversationId: conversation.id,
+            senderType: 'VISITOR',
+            content: validatedData.message,
+          },
+        })
+        await prisma.conversation.update({
+          where: { id: conversation.id },
+          data: { lastMessageAt: msg.createdAt },
+        })
+      } catch (chatErr) {
+        console.error('Erreur création conversation contact:', chatErr)
+      }
+    })()
+
     console.log('Contact créé avec succès:', contact.id)
 
     // Envoi de l'email de notification (si Resend est configuré)
