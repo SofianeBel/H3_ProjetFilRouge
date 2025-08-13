@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
+import { isRateLimited, recordAttempt, getClientIP } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -34,11 +35,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 })
     }
 
+    const ip = getClientIP(request as unknown as Request)
+    if (isRateLimited(`chat-admin:${ip}`)) {
+      return NextResponse.json({ success: false, message: 'Too many requests' }, { status: 429 })
+    }
+
     const userId = (session.user as any).id as string | undefined
     const body = await request.json()
     const { content } = body as { content: string }
 
     if (!content || !content.trim()) {
+      recordAttempt(`chat-admin:${ip}`, false)
       return NextResponse.json({ success: false, message: 'Content required' }, { status: 400 })
     }
 
@@ -55,6 +62,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       where: { id: params.id },
       data: { lastMessageAt: created.createdAt },
     })
+
+    recordAttempt(`chat-admin:${ip}`, true)
 
     return NextResponse.json({ success: true, message: created })
   } catch (e) {
