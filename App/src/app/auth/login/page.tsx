@@ -11,6 +11,7 @@ import { GoogleSignInButton, AuthDivider } from '@/components/ui/google-sign-in-
 interface FormData {
   email: string
   password: string
+  otp?: string
 }
 
 /**
@@ -28,6 +29,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [otpRequired, setOtpRequired] = useState(false)
 
   // Gestion des changements de champs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,11 +62,17 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
+        otp: formData.otp,
         redirect: false,
       })
 
       if (result?.error) {
-        setError('Vérifiez votre email (ou identifiants incorrects).')
+        if (result.error === '2FA_REQUIRED') {
+          setOtpRequired(true)
+          setError('Veuillez entrer votre code 2FA.')
+        } else {
+          setError('Vérifiez votre email (ou identifiants incorrects).')
+        }
       } else {
         // Redirection vers la page demandée ou l'accueil
         router.push(callbackUrl)
@@ -150,6 +158,27 @@ function LoginForm() {
               </button>
             </div>
           </div>
+
+          {/* Champ OTP si requis */}
+          {otpRequired && (
+            <div className="space-y-2">
+              <label htmlFor="otp" className="text-sm font-medium text-gray-300">
+                Code 2FA (OTP)
+              </label>
+              <div className="relative">
+                <input
+                  id="otp"
+                  name="otp"
+                  type="text"
+                  required
+                  value={formData.otp || ''}
+                  onChange={handleChange}
+                  className="w-full pl-4 pr-4 py-3 bg-[#111318] border border-[#292e38] rounded-lg text-white placeholder-gray-500 focus:border-[#A67FFB] focus:ring-1 focus:ring-[#A67FFB] transition-colors"
+                  placeholder="123456"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Message d'erreur */}
           {error && (

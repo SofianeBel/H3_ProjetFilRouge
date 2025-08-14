@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import NextLink from 'next/link'
 import { User, Shield, Eye, AlertTriangle, Download, Trash2, Save, Key, Package } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { signOut } from 'next-auth/react'
@@ -15,6 +15,7 @@ interface UserProfile {
   name: string | null
   email: string
   emailVerified: Date | null
+  twoFactorEnabled?: boolean
   createdAt: string
   consentRecords: Array<{
     id: string
@@ -76,6 +77,7 @@ export default function ProfilePage() {
     confirmPassword: ''
   })
   const [consents, setConsents] = useState<Record<string, boolean>>({})
+  const [twoFA, setTwoFA] = useState<{ enabled: boolean; secret?: string; qrDataUrl?: string; token: string }>({ enabled: false, token: '' })
   
   // États pour les actions
   const [isSaving, setIsSaving] = useState(false)
@@ -95,6 +97,7 @@ export default function ProfilePage() {
           name: data.data.name || '',
           email: data.data.email || ''
         })
+        setTwoFA(prev => ({ ...prev, enabled: !!data.data.twoFactorEnabled }))
         
         // Initialiser les consentements
         const currentConsents: Record<string, boolean> = {}
@@ -428,9 +431,9 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Commandes :</span>
-                            <Link href="/orders" className="ml-2 font-medium text-[#6B8DE5] hover:text-[#5A7BD4]">
+                            <NextLink href="/orders" className="ml-2 font-medium text-[#6B8DE5] hover:text-[#5A7BD4]">
                               {profile._count.orders}
-                            </Link>
+                            </NextLink>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles :</span>
@@ -463,67 +466,144 @@ export default function ProfilePage() {
 
               {/* Onglet Sécurité */}
               {activeTab === 'security' && (
-                <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Changer le mot de passe
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Mot de passe actuel
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.oldPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
-                          placeholder="Mot de passe actuel"
-                          required
-                        />
-                      </div>
+                <div className="space-y-10">
+                  <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Changer le mot de passe
+                      </h3>
                       
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Nouveau mot de passe
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.newPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
-                          placeholder="Nouveau mot de passe (min. 6 caractères)"
-                          minLength={6}
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Confirmer le nouveau mot de passe
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
-                          placeholder="Confirmer le nouveau mot de passe"
-                          required
-                        />
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Mot de passe actuel
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.oldPassword}
+                            onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                            placeholder="Mot de passe actuel"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Nouveau mot de passe
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.newPassword}
+                            onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                            placeholder="Nouveau mot de passe (min. 6 caractères)"
+                            minLength={6}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Confirmer le nouveau mot de passe
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.confirmPassword}
+                            onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                            placeholder="Confirmer le nouveau mot de passe"
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="flex items-center space-x-2 px-4 py-2 bg-[#6B8DE5] text-white rounded-md hover:bg-[#5A7BD4] disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Key className="h-4 w-4" />
-                    <span>{isSaving ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}</span>
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex items-center space-x-2 px-4 py-2 bg-[#6B8DE5] text-white rounded-md hover:bg-[#5A7BD4] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Key className="h-4 w-4" />
+                      <span>{isSaving ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}</span>
+                    </button>
+                  </form>
+
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Authentification à deux facteurs (2FA)</h3>
+                    {!twoFA.enabled ? (
+                      <div className="space-y-4">
+                        <p className="text-sm text-gray-600">Ajoutez une couche de sécurité supplémentaire à votre compte en activant le 2FA avec une application d'authentification (Google Authenticator, Authy…).</p>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/auth/setup-2fa')
+                            const data = await res.json()
+                            if (data.success) {
+                              setTwoFA(prev => ({ ...prev, secret: data.secret, qrDataUrl: data.qrDataUrl }))
+                            }
+                          }}
+                          className="px-4 py-2 bg-[#6B8DE5] text-white rounded-md hover:bg-[#5A7BD4]"
+                        >
+                          Générer un QR Code
+                        </button>
+
+                        {twoFA.qrDataUrl && (
+                          <div className="space-y-4">
+                            <img src={twoFA.qrDataUrl} alt="QR Code 2FA" className="w-40 h-40 border rounded" />
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Code à 6 chiffres</label>
+                              <input
+                                type="text"
+                                value={twoFA.token}
+                                onChange={(e) => setTwoFA(prev => ({ ...prev, token: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                                placeholder="Entrez le code de votre application"
+                              />
+                            </div>
+                            <button
+                              onClick={async () => {
+                                const res = await fetch('/api/auth/enable-2fa', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ token: twoFA.token, secret: twoFA.secret })
+                                })
+                                const data = await res.json()
+                                if (data.success) {
+                                  showMessage('success', '2FA activé avec succès')
+                                  setTwoFA({ enabled: true, token: '' })
+                                } else {
+                                  showMessage('error', data.message || 'Échec de l\'activation 2FA')
+                                }
+                              }}
+                              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                            >
+                              Activer 2FA
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-sm text-gray-600">Le 2FA est <span className="font-medium text-green-700">activé</span> sur votre compte.</p>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/auth/disable-2fa', { method: 'POST' })
+                            const data = await res.json()
+                            if (data.success) {
+                              showMessage('success', '2FA désactivé')
+                              setTwoFA({ enabled: false, token: '' })
+                            } else {
+                              showMessage('error', data.message || 'Échec de la désactivation 2FA')
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        >
+                          Désactiver 2FA
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* Onglet Confidentialité */}

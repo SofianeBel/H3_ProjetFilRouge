@@ -154,6 +154,8 @@ model User {
   role          UserRole  @default(CLIENT)
   active        Boolean   @default(true)  // Soft-delete : true = actif, false = désactivé
   deletedAt     DateTime? // Date de suppression pour purge CRON
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
   accounts      Account[]
   sessions      Session[]
   blogPosts     BlogPost[]

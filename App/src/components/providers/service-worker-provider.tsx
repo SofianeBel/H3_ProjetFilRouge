@@ -13,6 +13,20 @@ export function ServiceWorkerProvider() {
       
       // Attendre que la page soit chargée pour éviter les conflits
       window.addEventListener('load', async () => {
+        // En développement, ne pas enregistrer de SW et nettoyer d'éventuels caches obsolètes
+        if (process.env.NODE_ENV !== 'production') {
+          try {
+            console.log('🚫 Service Worker désactivé en développement. Nettoyage en cours...');
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(r => r.unregister()));
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+            console.log('🧹 Service workers et caches nettoyés (dev)');
+          } catch (error) {
+            console.warn('⚠️ Nettoyage SW en développement - avertissement:', error);
+          }
+          return;
+        }
         try {
           console.log('🔧 Enregistrement du service worker...');
           

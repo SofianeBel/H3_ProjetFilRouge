@@ -102,6 +102,23 @@ export const {
             return null
           }
 
+          // Si 2FA activé, exiger un OTP valide
+          if ((user as any).twoFactorEnabled) {
+            // Le code OTP est attendu via credentials.otp
+            const otp = (credentials as any).otp
+            if (!otp) {
+              console.log('❌ OTP manquant pour 2FA')
+              // Indiquer côté client qu'un OTP est requis
+              throw new Error('2FA_REQUIRED')
+            }
+            const { authenticator } = await import('otplib')
+            const isValid = authenticator.verify({ token: String(otp), secret: (user as any).twoFactorSecret || '' })
+            if (!isValid) {
+              console.log('❌ OTP invalide')
+              return null
+            }
+          }
+
           console.log('✅ Connexion réussie:', email)
           
           return {

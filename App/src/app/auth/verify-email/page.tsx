@@ -37,7 +37,23 @@ function VerifyEmailContent() {
           setStatus('success')
           setMessage('Votre email a été vérifié avec succès !')
           
-          // Redirection automatique vers la page de connexion après 3 secondes
+          // Option B (tasklist): tentative de connexion automatique si un paramètre email est fourni
+          const email = searchParams.get('email')
+          const callbackUrl = searchParams.get('callbackUrl') || '/'
+          if (email) {
+            try {
+              const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: '' })
+              })
+              if (res.ok) {
+                router.push(callbackUrl)
+                return
+              }
+            } catch {}
+          }
+          // Sinon, redirection login
           setTimeout(() => {
             router.push('/auth/login')
           }, 3000)
