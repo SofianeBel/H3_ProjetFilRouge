@@ -66,9 +66,16 @@ export async function GET() {
       )
     }
 
-    const twoFA = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    })
+    let twoFA: any
+    try {
+      twoFA = await prisma.user.findUnique({ where: { id: session.user.id } })
+    } catch {
+      const rows: any = await prisma.$queryRawUnsafe(
+        'SELECT "twoFactorEnabled" FROM "users" WHERE "id" = ? LIMIT 1',
+        String(session.user.id)
+      )
+      twoFA = Array.isArray(rows) && rows[0] ? rows[0] : { twoFactorEnabled: false }
+    }
 
     return NextResponse.json({
       success: true,
@@ -208,9 +215,17 @@ export async function PATCH(request: NextRequest) {
       data: updateData
     })
 
-    const twoFA2 = await prisma.user.findUnique({
-      where: { id: currentUser.id }
-    })
+    let twoFA2: any
+    try {
+      twoFA2 = await prisma.user.findUnique({ where: { id: currentUser.id } })
+    } catch {
+      // Si le client Prisma n'a pas les champs, lire via requête brute
+      const rows: any = await prisma.$queryRawUnsafe(
+        'SELECT "twoFactorEnabled" FROM "users" WHERE "id" = ? LIMIT 1',
+        String(currentUser.id)
+      )
+      twoFA2 = Array.isArray(rows) && rows[0] ? rows[0] : { twoFactorEnabled: false }
+    }
 
     // Si l'email a changé, envoyer automatiquement un email de vérification
     if (updateData.email) {

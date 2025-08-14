@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isRateLimited, recordAttempt, getClientIP, getTimeUntilUnblock } from '@/lib/rate-limit'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
@@ -20,6 +21,10 @@ const registerSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request as unknown as Request)
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: `Trop de tentatives. Réessayez dans ${getTimeUntilUnblock(ip)}s.` }, { status: 429 })
+    }
     const body = await request.json()
     
     // Validation des données
@@ -109,15 +114,19 @@ export async function POST(request: NextRequest) {
       // Ne pas échouer la création, mais informer côté client
     }
 
-    return NextResponse.json(
+    const resp = NextResponse.json(
       { 
         message: 'Compte créé avec succès',
         user 
       },
       { status: 201 }
     )
+    recordAttempt(ip, true)
+    return resp
 
   } catch (error) {
+    const ip = getClientIP(request as unknown as Request)
+    recordAttempt(ip, false)
     console.error('Erreur lors de l\'inscription:', error)
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },

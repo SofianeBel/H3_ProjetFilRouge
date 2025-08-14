@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import NextLink from 'next/link'
+import Link from 'next/link'
 import { User, Shield, Eye, AlertTriangle, Download, Trash2, Save, Key, Package } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { signOut } from 'next-auth/react'
@@ -431,9 +431,9 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Commandes :</span>
-                            <NextLink href="/orders" className="ml-2 font-medium text-[#6B8DE5] hover:text-[#5A7BD4]">
+                              <Link href="/orders" className="ml-2 font-medium text-[#6B8DE5] hover:text-[#5A7BD4]">
                               {profile._count.orders}
-                            </NextLink>
+                              </Link>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles :</span>
@@ -536,7 +536,7 @@ export default function ProfilePage() {
                         <p className="text-sm text-gray-600">Ajoutez une couche de sécurité supplémentaire à votre compte en activant le 2FA avec une application d'authentification (Google Authenticator, Authy…).</p>
                         <button
                           onClick={async () => {
-                            const res = await fetch('/api/auth/setup-2fa')
+                            const res = await fetch('/api/auth/setup-2fa', { credentials: 'include' })
                             const data = await res.json()
                             if (data.success) {
                               setTwoFA(prev => ({ ...prev, secret: data.secret, qrDataUrl: data.qrDataUrl }))
@@ -562,17 +562,22 @@ export default function ProfilePage() {
                             </div>
                             <button
                               onClick={async () => {
-                                const res = await fetch('/api/auth/enable-2fa', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ token: twoFA.token, secret: twoFA.secret })
-                                })
-                                const data = await res.json()
-                                if (data.success) {
-                                  showMessage('success', '2FA activé avec succès')
-                                  setTwoFA({ enabled: true, token: '' })
-                                } else {
-                                  showMessage('error', data.message || 'Échec de l\'activation 2FA')
+                                try {
+                                  const res = await fetch('/api/auth/enable-2fa', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({ token: twoFA.token?.trim(), secret: twoFA.secret })
+                                  })
+                                  const data = await res.json()
+                                  if (res.ok && data.success) {
+                                    showMessage('success', '2FA activé avec succès')
+                                    setTwoFA({ enabled: true, token: '' })
+                                  } else {
+                                    showMessage('error', data.message || 'Échec de l\'activation 2FA')
+                                  }
+                                } catch (e) {
+                                  showMessage('error', 'Erreur réseau lors de l\'activation 2FA')
                                 }
                               }}
                               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -587,7 +592,7 @@ export default function ProfilePage() {
                         <p className="text-sm text-gray-600">Le 2FA est <span className="font-medium text-green-700">activé</span> sur votre compte.</p>
                         <button
                           onClick={async () => {
-                            const res = await fetch('/api/auth/disable-2fa', { method: 'POST' })
+                            const res = await fetch('/api/auth/disable-2fa', { method: 'POST', credentials: 'include' })
                             const data = await res.json()
                             if (data.success) {
                               showMessage('success', '2FA désactivé')

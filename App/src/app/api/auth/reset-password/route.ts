@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { isRateLimited, recordAttempt, getClientIP, getTimeUntilUnblock } from '@/lib/rate-limit'
 
 // Schéma de validation pour la réinitialisation de mot de passe
 const resetPasswordSchema = z.object({
@@ -85,6 +86,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request as unknown as Request)
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: `Trop de tentatives. Réessayez dans ${getTimeUntilUnblock(ip)}s.` }, { status: 429 })
+    }
     const body = await request.json()
     
     // Validation des données d'entrée
@@ -180,12 +185,16 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
+    const resp = NextResponse.json({
       message: 'Mot de passe réinitialisé avec succès',
       passwordReset: true
     })
+    recordAttempt(ip, true)
+    return resp
 
   } catch (error) {
+    const ip = getClientIP(request as unknown as Request)
+    recordAttempt(ip, false)
     console.error('Erreur reset-password:', error)
     return NextResponse.json(
       { error: 'Erreur serveur' },

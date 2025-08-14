@@ -30,6 +30,7 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [otpRequired, setOtpRequired] = useState(false)
+  const useLoginProxy = process.env.NEXT_PUBLIC_USE_LOGIN_PROXY === 'true'
 
   // Gestion des changements de champs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,24 +60,47 @@ function LoginForm() {
         // L'API renvoie un message neutre; on continue sans en tenir compte
       } catch {}
 
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        otp: formData.otp,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        if (result.error === '2FA_REQUIRED') {
-          setOtpRequired(true)
-          setError('Veuillez entrer votre code 2FA.')
+      if (useLoginProxy) {
+        const resp = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            otp: formData.otp
+          })
+        })
+        if (!resp.ok) {
+          if (resp.status === 429) {
+            setError('Trop de tentatives. Réessayez plus tard.')
+          } else {
+            setError('Identifiants incorrects ou 2FA requis.')
+            setOtpRequired(true)
+          }
         } else {
-          setError('Vérifiez votre email (ou identifiants incorrects).')
+          router.push(callbackUrl)
+          router.refresh()
         }
       } else {
-        // Redirection vers la page demandée ou l'accueil
-        router.push(callbackUrl)
-        router.refresh()
+        const result = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          otp: formData.otp,
+          redirect: false,
+        })
+
+        if (result?.error) {
+          if (result.error === '2FA_REQUIRED') {
+            setOtpRequired(true)
+            setError('Veuillez entrer votre code 2FA.')
+          } else {
+            setError('Vérifiez votre email (ou identifiants incorrects).')
+          }
+        } else {
+          // Redirection vers la page demandée ou l'accueil
+          router.push(callbackUrl)
+          router.refresh()
+        }
       }
     } catch (error) {
       console.error('Erreur de connexion:', error)

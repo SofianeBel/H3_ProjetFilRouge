@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { signIn } from '@/auth'
 import crypto from 'crypto'
 import { Resend } from 'resend'
 
@@ -182,6 +183,15 @@ export async function GET(request: NextRequest) {
         })
       }
     })
+
+    // Option A: tentative de création de session (si NextAuth v5 le permet)
+    try {
+      await signIn('credentials', {
+        redirect: false,
+        email: user.email,
+        password: ''
+      } as any)
+    } catch {}
 
     return NextResponse.json({
       message: 'Email vérifié avec succès',

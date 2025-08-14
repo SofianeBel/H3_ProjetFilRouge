@@ -15,9 +15,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Non authentifié' }, { status: 401 })
     }
 
-    const { token, secret } = await request.json()
+    let body: any
+    try {
+      body = await request.json()
+    } catch (e) {
+      return NextResponse.json({ success: false, message: 'Corps JSON invalide' }, { status: 400 })
+    }
+
+    const { token, secret } = body || {}
     if (!token) {
       return NextResponse.json({ success: false, message: 'Token TOTP requis' }, { status: 400 })
+    }
+
+    if (!/^\d{6}$/.test(String(token))) {
+      return NextResponse.json({ success: false, message: 'Format de code TOTP invalide' }, { status: 400 })
     }
 
     let user = await prisma.user.findUnique({ where: { id: session.user.id } })
@@ -31,20 +42,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Secret TOTP manquant' }, { status: 400 })
     }
 
-    const isValid = authenticator.verify({ token, secret: otpSecret })
+    let isValid = false
+    try {
+      isValid = authenticator.verify({ token: String(token), secret: String(otpSecret) })
+    } catch (err) {
+      console.error('Erreur vérification TOTP:', err)
+      return NextResponse.json({ success: false, message: 'Erreur de vérification TOTP' }, { status: 400 })
+    }
     if (!isValid) {
       return NextResponse.json({ success: false, message: 'Code TOTP invalide' }, { status: 400 })
     }
 
     // Activer 2FA et stocker le secret
-    user = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        twoFactorEnabled: true,
-        twoFactorSecret: otpSecret
-      },
-      select: { id: true, twoFactorEnabled: true }
-    })
+    try {
+      user = await prisma.user.update({
+        where: { id: session.user.id },
+        data: {
+          twoFactorEnabled: true,
+          twoFactorSecret: otpSecret
+        },
+        select: { id: true }
+      })
+    } catch (e: any) {
+      const message = String(e?.message || '')
+      if (message.includes('Unknown argument `twoFactorEnabled`')) {
+        // Fallback Windows: client Prisma non régénéré → mise à jour SQL brute
+        await prisma.$executeRawUnsafe(
+          'UPDATE "users" SET "twoFactorEnabled" = 1, "twoFactorSecret" = ? WHERE "id" = ?',
+          String(otpSecret),
+          String(session.user.id)
+        )
+      } else {
+        throw e
+      }
+    }
 
     await prisma.authenticationLog.create({
       data: {
@@ -58,9 +89,9 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, message: '2FA activé' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erreur enable 2FA:', error)
-    return NextResponse.json({ success: false, message: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ success: false, message: process.env.NODE_ENV !== 'production' ? (error?.message || 'Erreur serveur') : 'Erreur serveur' }, { status: 500 })
   }
 }
 

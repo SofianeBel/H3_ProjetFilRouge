@@ -13,10 +13,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Non authentifié' }, { status: 401 })
     }
 
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { twoFactorEnabled: false, twoFactorSecret: null }
-    })
+    try {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { twoFactorEnabled: false, twoFactorSecret: null }
+      })
+    } catch (e: any) {
+      const message = String(e?.message || '')
+      if (message.includes('Unknown argument `twoFactorEnabled`')) {
+        await prisma.$executeRawUnsafe(
+          'UPDATE "users" SET "twoFactorEnabled" = 0, "twoFactorSecret" = NULL WHERE "id" = ?',
+          String(session.user.id)
+        )
+      } else {
+        throw e
+      }
+    }
 
     await prisma.authenticationLog.create({
       data: {
