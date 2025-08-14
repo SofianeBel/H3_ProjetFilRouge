@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft, CreditCard } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft, CheckCircle, Home } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 
 /**
@@ -11,6 +12,7 @@ import { useCart } from '@/context/CartContext'
  * et de procéder au paiement
  */
 export default function CartPage() {
+  const router = useRouter()
   const { 
     cart, 
     updateQuantity, 
@@ -33,40 +35,14 @@ export default function CartPage() {
   }
 
   /**
-   * Gestion du checkout
+   * Redirection vers la page de checkout avancée
    */
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cart.length === 0) return
-
-    setIsLoading(true)
-    
-    try {
-      const response = await fetch('/api/cart/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          cart: cart
-        })
-      })
-
-      const data = await response.json()
-
-      if (data.success && data.data.url) {
-        // Redirection vers Stripe Checkout
-        window.location.href = data.data.url
-      } else {
-        console.error('Erreur checkout:', data.message)
-        alert('Erreur lors de la création de la session de paiement. Veuillez réessayer.')
-      }
-    } catch (error) {
-      console.error('Erreur checkout:', error)
-      alert('Erreur lors de la création de la session de paiement. Veuillez réessayer.')
-    } finally {
-      setIsLoading(false)
-    }
+    router.push('/checkout')
   }
+
+
 
   // Si le panier est vide
   if (cart.length === 0) {
@@ -98,15 +74,27 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container-cyna">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
+          {/* Header avec navigation - User Story 8.c */}
           <div className="mb-8">
-            <Link 
-              href="/services"
-              className="inline-flex items-center text-[#6B8DE5] hover:text-[#5A7BD4] font-medium mb-4"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Continuer mes achats
-            </Link>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/"
+                  className="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Accueil
+                </Link>
+                <span className="text-gray-400">•</span>
+                <Link 
+                  href="/services"
+                  className="inline-flex items-center text-[#6B8DE5] hover:text-[#5A7BD4] font-medium"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Continuer mes achats
+                </Link>
+              </div>
+            </div>
             <h1 className="text-3xl font-bold text-gray-900">
               Mon panier ({getTotalItems()} article{getTotalItems() > 1 ? 's' : ''})
             </h1>
@@ -225,8 +213,8 @@ export default function CartPage() {
                     </>
                   ) : (
                     <>
-                      <CreditCard className="mr-2 h-5 w-5" />
-                      Passer au paiement
+                      <CheckCircle className="mr-2 h-5 w-5" />
+                      Confirmer ma commande
                     </>
                   )}
                 </button>
@@ -239,6 +227,8 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+
+
     </div>
   )
 } 

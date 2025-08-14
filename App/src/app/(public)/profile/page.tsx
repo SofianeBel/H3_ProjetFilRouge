@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { User, Shield, Eye, AlertTriangle, Download, Trash2, Save, Key } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { User, Shield, Eye, AlertTriangle, Download, Trash2, Save, Key, Package } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { signOut } from 'next-auth/react'
+import OrderHistory from '@/components/ui/order-history'
 
 /**
  * Interface pour les données utilisateur
@@ -13,6 +15,7 @@ interface UserProfile {
   name: string | null
   email: string
   emailVerified: Date | null
+  twoFactorEnabled?: boolean
   createdAt: string
   consentRecords: Array<{
     id: string
@@ -62,7 +65,6 @@ export default function ProfilePage() {
   const { user, isLoading } = useAuth()
   const [activeTab, setActiveTab] = useState('personal')
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   
   // États pour les formulaires
   const [personalForm, setPersonalForm] = useState({
@@ -75,6 +77,7 @@ export default function ProfilePage() {
     confirmPassword: ''
   })
   const [consents, setConsents] = useState<Record<string, boolean>>({})
+  const [twoFA, setTwoFA] = useState<{ enabled: boolean; secret?: string; qrDataUrl?: string; token: string }>({ enabled: false, token: '' })
   
   // États pour les actions
   const [isSaving, setIsSaving] = useState(false)
@@ -83,16 +86,7 @@ export default function ProfilePage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [messages, setMessages] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
-  /**
-   * Chargement des données profil
-   */
-  useEffect(() => {
-    if (user) {
-      loadProfile()
-    }
-  }, [user])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const response = await fetch('/api/profile')
       const data = await response.json()
@@ -103,6 +97,7 @@ export default function ProfilePage() {
           name: data.data.name || '',
           email: data.data.email || ''
         })
+        setTwoFA(prev => ({ ...prev, enabled: !!data.data.twoFactorEnabled }))
         
         // Initialiser les consentements
         const currentConsents: Record<string, boolean> = {}
@@ -114,12 +109,19 @@ export default function ProfilePage() {
       } else {
         showMessage('error', 'Impossible de charger le profil')
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur réseau')
-    } finally {
-      setIsLoadingProfile(false)
     }
-  }
+  }, [])
+
+  /**
+   * Chargement des données profil
+   */
+  useEffect(() => {
+    if (user) {
+      loadProfile()
+    }
+  }, [user, loadProfile])
 
   /**
    * Affichage des messages
@@ -157,7 +159,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la mise à jour')
     } finally {
       setIsSaving(false)
@@ -206,7 +208,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la mise à jour')
     } finally {
       setIsSaving(false)
@@ -240,7 +242,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la mise à jour')
     } finally {
       setIsSaving(false)
@@ -275,7 +277,7 @@ export default function ProfilePage() {
         const data = await response.json()
         showMessage('error', data.message || 'Erreur lors de l\'export')
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de l\'export')
     } finally {
       setIsExporting(false)
@@ -306,7 +308,7 @@ export default function ProfilePage() {
       } else {
         showMessage('error', data.message)
       }
-    } catch (error) {
+    } catch {
       showMessage('error', 'Erreur lors de la suppression')
     }
 
@@ -362,6 +364,7 @@ export default function ProfilePage() {
               <nav className="flex space-x-8 px-6">
                 {[
                   { id: 'personal', label: 'Informations personnelles', icon: User },
+                  { id: 'orders', label: 'Historique des commandes', icon: Package },
                   { id: 'security', label: 'Sécurité', icon: Shield },
                   { id: 'privacy', label: 'Confidentialité', icon: Eye },
                   { id: 'danger', label: 'Zone de danger', icon: AlertTriangle }
@@ -428,7 +431,9 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Commandes :</span>
-                            <span className="ml-2 font-medium">{profile._count.orders}</span>
+                              <Link href="/orders" className="ml-2 font-medium text-[#6B8DE5] hover:text-[#5A7BD4]">
+                              {profile._count.orders}
+                              </Link>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles :</span>
@@ -454,69 +459,156 @@ export default function ProfilePage() {
                 </form>
               )}
 
+              {/* Onglet Historique des commandes */}
+              {activeTab === 'orders' && (
+                <OrderHistory />
+              )}
+
               {/* Onglet Sécurité */}
               {activeTab === 'security' && (
-                <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Changer le mot de passe
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Mot de passe actuel
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.oldPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
-                          placeholder="Mot de passe actuel"
-                          required
-                        />
-                      </div>
+                <div className="space-y-10">
+                  <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Changer le mot de passe
+                      </h3>
                       
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Nouveau mot de passe
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.newPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
-                          placeholder="Nouveau mot de passe (min. 6 caractères)"
-                          minLength={6}
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Confirmer le nouveau mot de passe
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
-                          placeholder="Confirmer le nouveau mot de passe"
-                          required
-                        />
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Mot de passe actuel
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.oldPassword}
+                            onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                            placeholder="Mot de passe actuel"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Nouveau mot de passe
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.newPassword}
+                            onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                            placeholder="Nouveau mot de passe (min. 6 caractères)"
+                            minLength={6}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Confirmer le nouveau mot de passe
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.confirmPassword}
+                            onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                            placeholder="Confirmer le nouveau mot de passe"
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="flex items-center space-x-2 px-4 py-2 bg-[#6B8DE5] text-white rounded-md hover:bg-[#5A7BD4] disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Key className="h-4 w-4" />
-                    <span>{isSaving ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}</span>
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex items-center space-x-2 px-4 py-2 bg-[#6B8DE5] text-white rounded-md hover:bg-[#5A7BD4] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Key className="h-4 w-4" />
+                      <span>{isSaving ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}</span>
+                    </button>
+                  </form>
+
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Authentification à deux facteurs (2FA)</h3>
+                    {!twoFA.enabled ? (
+                      <div className="space-y-4">
+                        <p className="text-sm text-gray-600">Ajoutez une couche de sécurité supplémentaire à votre compte en activant le 2FA avec une application d'authentification (Google Authenticator, Authy…).</p>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/auth/setup-2fa', { credentials: 'include' })
+                            const data = await res.json()
+                            if (data.success) {
+                              setTwoFA(prev => ({ ...prev, secret: data.secret, qrDataUrl: data.qrDataUrl }))
+                            }
+                          }}
+                          className="px-4 py-2 bg-[#6B8DE5] text-white rounded-md hover:bg-[#5A7BD4]"
+                        >
+                          Générer un QR Code
+                        </button>
+
+                        {twoFA.qrDataUrl && (
+                          <div className="space-y-4">
+                            <img src={twoFA.qrDataUrl} alt="QR Code 2FA" className="w-40 h-40 border rounded" />
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Code à 6 chiffres</label>
+                              <input
+                                type="text"
+                                value={twoFA.token}
+                                onChange={(e) => setTwoFA(prev => ({ ...prev, token: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6B8DE5] focus:border-transparent"
+                                placeholder="Entrez le code de votre application"
+                              />
+                            </div>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch('/api/auth/enable-2fa', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({ token: twoFA.token?.trim(), secret: twoFA.secret })
+                                  })
+                                  const data = await res.json()
+                                  if (res.ok && data.success) {
+                                    showMessage('success', '2FA activé avec succès')
+                                    setTwoFA({ enabled: true, token: '' })
+                                  } else {
+                                    showMessage('error', data.message || 'Échec de l\'activation 2FA')
+                                  }
+                                } catch (e) {
+                                  showMessage('error', 'Erreur réseau lors de l\'activation 2FA')
+                                }
+                              }}
+                              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                            >
+                              Activer 2FA
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-sm text-gray-600">Le 2FA est <span className="font-medium text-green-700">activé</span> sur votre compte.</p>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/auth/disable-2fa', { method: 'POST', credentials: 'include' })
+                            const data = await res.json()
+                            if (data.success) {
+                              showMessage('success', '2FA désactivé')
+                              setTwoFA({ enabled: false, token: '' })
+                            } else {
+                              showMessage('error', data.message || 'Échec de la désactivation 2FA')
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        >
+                          Désactiver 2FA
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* Onglet Confidentialité */}

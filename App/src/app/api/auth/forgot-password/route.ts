@@ -3,6 +3,7 @@ import { z } from 'zod'
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
+import { isRateLimited, recordAttempt, getClientIP, getTimeUntilUnblock } from '@/lib/rate-limit'
 
 // Initialisation de Resend pour l'envoi d'emails
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -21,6 +22,10 @@ const forgotPasswordSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request as unknown as Request)
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: `Trop de tentatives. Réessayez dans ${getTimeUntilUnblock(ip)}s.` }, { status: 429 })
+    }
     const body = await request.json()
     
     // Validation des données d'entrée
@@ -173,11 +178,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({
+    const resp = NextResponse.json({
       message: neutralMessage
     })
+    recordAttempt(ip, true)
+    return resp
 
   } catch (error) {
+    const ip = getClientIP(request as unknown as Request)
+    recordAttempt(ip, false)
     console.error('Erreur forgot-password:', error)
     return NextResponse.json(
       { error: 'Erreur serveur' },

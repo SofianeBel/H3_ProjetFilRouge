@@ -21,7 +21,10 @@ const CartItemSchema = z.object({
 const CheckoutRequestSchema = z.object({
   cart: z.array(CartItemSchema).min(1, 'Le panier ne peut pas être vide'),
   successUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional()
+  cancelUrl: z.string().url().optional(),
+  shippingAddressId: z.string().optional(),
+  billingAddressId: z.string().optional(),
+  paymentMethodId: z.string().optional()
 })
 
 /**
@@ -30,14 +33,23 @@ const CheckoutRequestSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    // Récupération de la session utilisateur (optionnelle)
+    // Récupération de la session utilisateur (obligatoire pour checkout)
     const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Authentification requise pour procéder au paiement',
+        },
+        { status: 401 }
+      )
+    }
     
     // Validation du body de la requête
     const body = await request.json()
     const validatedData = CheckoutRequestSchema.parse(body)
     
-    const { cart, successUrl, cancelUrl } = validatedData
+    const { cart, successUrl, cancelUrl, shippingAddressId, billingAddressId, paymentMethodId } = validatedData
 
     // Vérification que tous les plans existent et sont disponibles
     const planIds = cart.map(item => item.serviceId) // serviceId est maintenant l'ID du plan
@@ -119,6 +131,64 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Vérification des adresses et méthodes de paiement si fournies
+    let shippingAddress = null
+    let billingAddress = null
+    let paymentMethod = null
+
+    if (shippingAddressId) {
+      shippingAddress = await prisma.userAddress.findFirst({
+        where: {
+          id: shippingAddressId,
+          userId: session.user.id,
+          isActive: true,
+          type: { in: ['SHIPPING', 'BOTH'] }
+        }
+      })
+      
+      if (!shippingAddress) {
+        return NextResponse.json(
+          { success: false, message: 'Adresse de livraison non trouvée ou non valide' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (billingAddressId) {
+      billingAddress = await prisma.userAddress.findFirst({
+        where: {
+          id: billingAddressId,
+          userId: session.user.id,
+          isActive: true,
+          type: { in: ['BILLING', 'BOTH'] }
+        }
+      })
+      
+      if (!billingAddress) {
+        return NextResponse.json(
+          { success: false, message: 'Adresse de facturation non trouvée ou non valide' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (paymentMethodId) {
+      paymentMethod = await prisma.userPaymentMethod.findFirst({
+        where: {
+          id: paymentMethodId,
+          userId: session.user.id,
+          isActive: true
+        }
+      })
+      
+      if (!paymentMethod) {
+        return NextResponse.json(
+          { success: false, message: 'Méthode de paiement non trouvée ou non valide' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Métadonnées pour le PaymentIntent
     const metadata: Record<string, string> = {
       cart: JSON.stringify(cart.map(item => ({
@@ -130,10 +200,13 @@ export async function POST(request: NextRequest) {
       })))
     }
 
-    // Ajout de l'userId si l'utilisateur est connecté
-    if (session?.user?.id) {
-      metadata.userId = session.user.id
-    }
+    // Ajout de l'userId (obligatoire désormais)
+    metadata.userId = session.user.id
+    
+    // Ajout des IDs des adresses et méthode de paiement si fournis
+    if (shippingAddressId) metadata.shippingAddressId = shippingAddressId
+    if (billingAddressId) metadata.billingAddressId = billingAddressId
+    if (paymentMethodId) metadata.paymentMethodId = paymentMethodId
 
     // URLs de redirection
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -153,7 +226,7 @@ export async function POST(request: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['FR', 'BE', 'CH', 'LU', 'MC']
       },
-      customer_email: session?.user?.email || undefined,
+      customer_email: session.user?.email || undefined,
       // Expire après 24h
       expires_at: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
     })

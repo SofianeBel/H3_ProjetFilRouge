@@ -81,12 +81,42 @@ export const {
             return null
           }
 
+          // Bloquer la connexion si l'email n'est pas vérifié (DÉSACTIVÉ POUR TESTS)
+          if (!user.emailVerified && process.env.NODE_ENV === 'production') {
+            console.log('❌ Email non vérifié pour', email)
+            // Retourner null pour bloquer la connexion côté serveur
+            // Le client affichera un message dédié après un pré‑check
+            return null
+          }
+          
+          // En développement, autoriser la connexion même sans email vérifié
+          if (!user.emailVerified) {
+            console.log('⚠️ Email non vérifié pour', email, '- AUTORISÉ EN DÉVELOPPEMENT')
+          }
+
           // Vérifier le mot de passe
           const passwordMatch = await bcrypt.compare(password, user.password)
 
           if (!passwordMatch) {
             console.log('❌ Mot de passe incorrect')
             return null
+          }
+
+          // Si 2FA activé, exiger un OTP valide
+          if ((user as any).twoFactorEnabled) {
+            // Le code OTP est attendu via credentials.otp
+            const otp = (credentials as any).otp
+            if (!otp) {
+              console.log('❌ OTP manquant pour 2FA')
+              // Indiquer côté client qu'un OTP est requis
+              throw new Error('2FA_REQUIRED')
+            }
+            const { authenticator } = await import('otplib')
+            const isValid = authenticator.verify({ token: String(otp), secret: (user as any).twoFactorSecret || '' })
+            if (!isValid) {
+              console.log('❌ OTP invalide')
+              return null
+            }
           }
 
           console.log('✅ Connexion réussie:', email)

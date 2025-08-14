@@ -1,6 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 
 /**
  * Interface pour un item du panier
@@ -46,9 +47,10 @@ export const useCart = (): CartContextType => {
 }
 
 /**
- * Clé pour le localStorage
+ * Clés pour le localStorage
  */
-const CART_STORAGE_KEY = 'cyna-cart'
+const CART_STORAGE_KEY_ANONYMOUS = 'cyna-cart-anonymous'
+const CART_STORAGE_KEY_USER = 'cyna-cart-user-'
 
 /**
  * Provider du contexte panier
@@ -56,34 +58,77 @@ const CART_STORAGE_KEY = 'cyna-cart'
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
+  const { data: session, status } = useSession()
 
-  // Chargement initial depuis localStorage
+  // Fonction pour obtenir la clé de stockage appropriée
+  const getStorageKey = useCallback((): string => {
+    if (session?.user?.id) {
+      return `${CART_STORAGE_KEY_USER}${session.user.id}`
+    }
+    return CART_STORAGE_KEY_ANONYMOUS
+  }, [session?.user?.id])
+
+  // Chargement initial depuis localStorage avec prise en compte de l'authentification
   useEffect(() => {
+    if (status === 'loading') return // Attendre que l'état de session soit connu
+
     try {
-      const savedCart = localStorage.getItem(CART_STORAGE_KEY)
+      const storageKey = getStorageKey()
+      const savedCart = localStorage.getItem(storageKey)
+      
       if (savedCart) {
         const parsedCart = JSON.parse(savedCart) as CartItem[]
         setCart(parsedCart)
+        console.log(`📦 Panier chargé depuis ${storageKey}:`, parsedCart.length, 'articles')
+      } else {
+        // Si pas de panier pour cet utilisateur, commencer avec un panier vide
+        setCart([])
+        console.log(`📦 Nouveau panier créé pour ${storageKey}`)
       }
     } catch (error) {
       console.error('Erreur lors du chargement du panier:', error)
       // En cas d'erreur, on repart avec un panier vide
-      localStorage.removeItem(CART_STORAGE_KEY)
+      const storageKey = getStorageKey()
+      localStorage.removeItem(storageKey)
+      setCart([])
     } finally {
       setIsLoaded(true)
     }
-  }, [])
+  }, [session, status, getStorageKey])
 
   // Sauvegarde dans localStorage à chaque modification du panier
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && status !== 'loading') {
       try {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart))
+        const storageKey = getStorageKey()
+        localStorage.setItem(storageKey, JSON.stringify(cart))
+        console.log(`💾 Panier sauvegardé dans ${storageKey}:`, cart.length, 'articles')
       } catch (error) {
         console.error('Erreur lors de la sauvegarde du panier:', error)
       }
     }
-  }, [cart, isLoaded])
+  }, [cart, isLoaded, session, status, getStorageKey])
+
+  // Gérer la transition déconnexion : vider le panier visible mais garder le panier utilisateur
+  useEffect(() => {
+    if (status === 'unauthenticated' && isLoaded) {
+      // L'utilisateur vient de se déconnecter, charger le panier anonyme
+      try {
+        const anonymousCart = localStorage.getItem(CART_STORAGE_KEY_ANONYMOUS)
+        if (anonymousCart) {
+          const parsedCart = JSON.parse(anonymousCart) as CartItem[]
+          setCart(parsedCart)
+          console.log('🔄 Passage au panier anonyme:', parsedCart.length, 'articles')
+        } else {
+          setCart([])
+          console.log('🔄 Panier vidé après déconnexion')
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du panier anonyme:', error)
+        setCart([])
+      }
+    }
+  }, [status, isLoaded])
 
   /**
    * Ajouter un item au panier
@@ -141,6 +186,57 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clearCart = () => {
     setCart([])
   }
+
+  /**
+   * Migrer le panier anonyme vers l'utilisateur connecté
+   * Utilisé quand un utilisateur se connecte avec des articles dans le panier anonyme
+   */
+  const migrateAnonymousCart = useCallback(() => {
+    if (!session?.user?.id) return
+
+    try {
+      const anonymousCart = localStorage.getItem(CART_STORAGE_KEY_ANONYMOUS)
+      if (anonymousCart) {
+        const anonymousItems = JSON.parse(anonymousCart) as CartItem[]
+        if (anonymousItems.length > 0) {
+          // Fusionner avec le panier existant de l'utilisateur
+          setCart(prevCart => {
+            const mergedCart = [...prevCart]
+            
+            anonymousItems.forEach(anonymousItem => {
+              const existingIndex = mergedCart.findIndex(item => 
+                item.serviceId === anonymousItem.serviceId
+              )
+              
+              if (existingIndex >= 0) {
+                // L'article existe déjà, additionner les quantités
+                mergedCart[existingIndex].quantity += anonymousItem.quantity
+              } else {
+                // Nouvel article, l'ajouter
+                mergedCart.push(anonymousItem)
+              }
+            })
+            
+            return mergedCart
+          })
+          
+          // Nettoyer le panier anonyme après migration
+          localStorage.removeItem(CART_STORAGE_KEY_ANONYMOUS)
+          console.log(`🔄 Panier anonyme migré vers l'utilisateur ${session.user.id}:`, anonymousItems.length, 'articles')
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la migration du panier anonyme:', error)
+    }
+  }, [session?.user?.id])
+
+  // Déclencher la migration quand l'utilisateur se connecte
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id && isLoaded) {
+      // Délai pour s'assurer que le panier utilisateur est chargé
+      setTimeout(migrateAnonymousCart, 100)
+    }
+  }, [status, session?.user?.id, isLoaded, migrateAnonymousCart])
 
   /**
    * Obtenir le nombre total d'items dans le panier

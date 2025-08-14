@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs'
  * GET /api/profile
  * Récupère les données du profil utilisateur avec consentements
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Vérification de l'authentification
     const session = await auth()
@@ -66,9 +66,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    let twoFA: any
+    try {
+      twoFA = await prisma.user.findUnique({ where: { id: session.user.id } })
+    } catch {
+      const rows: any = await prisma.$queryRawUnsafe(
+        'SELECT "twoFactorEnabled" FROM "users" WHERE "id" = ? LIMIT 1',
+        String(session.user.id)
+      )
+      twoFA = Array.isArray(rows) && rows[0] ? rows[0] : { twoFactorEnabled: false }
+    }
+
     return NextResponse.json({
       success: true,
-      data: user
+      data: { ...(user as any), twoFactorEnabled: !!(twoFA && (twoFA as any).twoFactorEnabled) }
     })
 
   } catch (error) {
@@ -201,15 +212,34 @@ export async function PATCH(request: NextRequest) {
     // Mise à jour de l'utilisateur
     const updatedUser = await prisma.user.update({
       where: { id: currentUser.id },
-      data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        emailVerified: true,
-        updatedAt: true
-      }
+      data: updateData
     })
+
+    let twoFA2: any
+    try {
+      twoFA2 = await prisma.user.findUnique({ where: { id: currentUser.id } })
+    } catch {
+      // Si le client Prisma n'a pas les champs, lire via requête brute
+      const rows: any = await prisma.$queryRawUnsafe(
+        'SELECT "twoFactorEnabled" FROM "users" WHERE "id" = ? LIMIT 1',
+        String(currentUser.id)
+      )
+      twoFA2 = Array.isArray(rows) && rows[0] ? rows[0] : { twoFactorEnabled: false }
+    }
+
+    // Si l'email a changé, envoyer automatiquement un email de vérification
+    if (updateData.email) {
+      try {
+        const origin = request.headers.get('origin') || process.env.NEXTAUTH_URL || ''
+        await fetch(`${origin}/api/auth/verify-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: updateData.email })
+        })
+      } catch (err) {
+        console.error('Erreur envoi email de vérification post-changement email:', err)
+      }
+    }
 
     // Journalisation de l'action
     await prisma.authenticationLog.create({
@@ -233,7 +263,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Profil mis à jour avec succès",
-      data: updatedUser,
+      data: { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, emailVerified: updatedUser.emailVerified, updatedAt: updatedUser.updatedAt, twoFactorEnabled: !!((twoFA2 as any)?.twoFactorEnabled) },
       requiresEmailVerification: !!updateData.email,
       requiresReauth: !!updateData.password
     })

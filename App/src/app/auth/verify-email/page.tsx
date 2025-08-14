@@ -17,6 +17,8 @@ function VerifyEmailContent() {
   
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
+  const [email, setEmail] = useState('')
+  const [resendLoading, setResendLoading] = useState(false)
 
   useEffect(() => {
     if (!token) {
@@ -35,7 +37,23 @@ function VerifyEmailContent() {
           setStatus('success')
           setMessage('Votre email a été vérifié avec succès !')
           
-          // Redirection automatique vers la page de connexion après 3 secondes
+          // Option B (tasklist): tentative de connexion automatique si un paramètre email est fourni
+          const email = searchParams.get('email')
+          const callbackUrl = searchParams.get('callbackUrl') || '/'
+          if (email) {
+            try {
+              const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: '' })
+              })
+              if (res.ok) {
+                router.push(callbackUrl)
+                return
+              }
+            } catch {}
+          }
+          // Sinon, redirection login
           setTimeout(() => {
             router.push('/auth/login')
           }, 3000)
@@ -52,6 +70,23 @@ function VerifyEmailContent() {
 
     verifyEmail()
   }, [token, router])
+
+  const handleResend = async () => {
+    if (!email) return
+    setResendLoading(true)
+    try {
+      await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      setMessage("Si cet email existe, un lien de vérification a été renvoyé.")
+    } catch {
+      setMessage('Erreur lors de l\'envoi. Réessayez plus tard.')
+    } finally {
+      setResendLoading(false)
+    }
+  }
 
   return (
     <div className="w-full max-w-md">
@@ -130,13 +165,23 @@ function VerifyEmailContent() {
               </p>
               
               <div className="flex flex-col gap-2">
-                <Link
-                  href="/auth/register"
-                  className="inline-flex items-center gap-2 bg-[#1a1f2e] border border-[#292e38] hover:border-[#A67FFB] text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  <Mail className="h-4 w-4" />
-                  Renvoyer un email de vérification
-                </Link>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Votre email"
+                    className="flex-1 bg-[#111318] border border-[#292e38] rounded-lg text-white px-3 py-2"
+                  />
+                  <button
+                    onClick={handleResend}
+                    disabled={resendLoading || !email}
+                    className="inline-flex items-center gap-2 bg-[#1a1f2e] border border-[#292e38] hover:border-[#A67FFB] text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {resendLoading ? 'Envoi...' : 'Renvoyer'}
+                  </button>
+                </div>
                 
                 <Link
                   href="/auth/login"
